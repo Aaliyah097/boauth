@@ -10,7 +10,7 @@ load_dotenv('.env')
 
 host = os.environ.get("API_HOST")
 headers = {
-    "x-api-key": encrypt_api_key(os.environ.get("api_key")),
+    "x-api-key": encrypt_api_key(os.environ.get("API_KEY")),
 }
 
 
