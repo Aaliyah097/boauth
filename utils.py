@@ -1,5 +1,5 @@
 import os
-from typing import Union
+from enum import Enum
 import random
 from cryptography.fernet import Fernet
 from cache import RedisConnector
@@ -8,9 +8,19 @@ from cache import RedisConnector
 cipher_suite = Fernet(os.environ.get("ENCRYPTION_KEY").encode())
 
 
+class StartParamEnum(str, Enum):
+    mobile = "mobile"
+    web = "web"
+
+
 async def get_start_params(nonce: str) -> str | None:
     if not nonce:
         return None
+    elif nonce == StartParamEnum.mobile:
+        return os.environ.get("MOBILE_REDIRECT_URI")
+    elif nonce == StartParamEnum.web:
+        return os.environ.get("WEB_REDIRECT_URI")
+
     async with RedisConnector() as connection:
         redirect_uri = await connection.get(nonce)
         return redirect_uri.decode('utf-8') if redirect_uri else None
