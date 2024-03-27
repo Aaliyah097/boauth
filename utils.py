@@ -13,6 +13,15 @@ class StartParamEnum(str, Enum):
     web = "web"
 
 
+async def get_signup_redirect_url(nonce: str) -> str | None:
+    if not nonce:
+        return None
+    elif nonce == StartParamEnum.mobile:
+        return os.environ.get("MOBILE_ONBOARDING_REDIRECT_URL")
+    elif nonce == StartParamEnum.web:
+        return os.environ.get("WEB_ONBOARDING_REDIRECT_URL")
+
+
 async def get_start_params(nonce: str) -> str | None:
     if not nonce:
         return None
@@ -20,10 +29,6 @@ async def get_start_params(nonce: str) -> str | None:
         return os.environ.get("MOBILE_REDIRECT_URI")
     elif nonce == StartParamEnum.web:
         return os.environ.get("WEB_REDIRECT_URI")
-
-    async with RedisConnector() as connection:
-        redirect_uri = await connection.get(nonce)
-        return redirect_uri.decode('utf-8') if redirect_uri else None
 
 
 def encrypt_api_key(api_key) -> str:
@@ -48,3 +53,9 @@ async def store_telegram_id(nonce: str, telegram_id: str) -> str:
         await connection.set(nonce, str(telegram_id))
         await connection.expire(nonce, 15 * 60)
         return nonce
+
+
+def is_valid_url(url: str) -> bool:
+    if url.startswith("https") or url.startswith("tg"):
+        return True
+    return False
