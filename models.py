@@ -3,7 +3,9 @@ from dataclasses import dataclass
 
 @dataclass
 class Account:
-    pk: int
     login_tg: str
     id_tg: str | None
-    is_active: bool
+    is_active: bool = True
+    is_onboarded: bool = True
+    is_test_finished: bool = True
+    has_pd: bool = True

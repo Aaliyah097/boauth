@@ -1,4 +1,6 @@
 import os
+import random
+from string import ascii_letters
 from dotenv import load_dotenv
 from httpx import AsyncClient
 from utils import encrypt_api_key
@@ -41,11 +43,13 @@ async def get_account(telegram_login: str) -> Account:
         response = response.json()
         if len(response) == 0:
             raise UserNotFoundError("Пользователь не найден")
+        print(response)
         return Account(
-            pk=response[0]['id'],
+            # pk=response[0]['id'],
             login_tg=response[0]['login_tg'],
             id_tg=str(response[0]['id_tg']) if response[0]['id_tg'] else None,
-            is_active=response[0]['is_active']
+            is_active=response[0]['is_active'],
+            is_onboarded=response[0]['is_onboarded']
         )
 
 
@@ -65,3 +69,14 @@ async def activate_account(account_id: int, telegram_id: str) -> None:
                 pass
             case _:
                 response.raise_for_status()
+
+
+async def signup_user(tg_username: str, tg_id: str) -> Account:
+    password = "".join([random.choice(ascii_letters) for _ in range(8)])
+
+    return Account(
+        login_tg=tg_username,
+        id_tg=tg_id,
+        is_active=True,
+        is_onboarded=False
+    )
