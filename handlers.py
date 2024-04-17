@@ -117,7 +117,7 @@ async def calc_friendship(msg: Message, command: CommandObject):
     if not account or not account.partial_signup:
         nonce = await store_telegram_id(make_nonce(), telegram_id)
         await msg.answer(
-            message, 
+            vars.ONBOARDING_REQUIRED % ((first_name or login), nonce), 
             parse_mode=ParseMode.HTML, 
             reply_markup=InlineKeyboardMarkup(
                 row_width=1,
