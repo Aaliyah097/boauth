@@ -13,31 +13,16 @@ class StartParamEnum(str, Enum):
     web = "web"
 
 
-async def get_signup_redirect_url(nonce: str) -> str | None:
-    if not nonce:
-        return None
-    elif nonce == StartParamEnum.mobile:
-        return os.environ.get("MOBILE_ONBOARDING_REDIRECT_URL")
-    elif nonce == StartParamEnum.web:
-        return os.environ.get("WEB_ONBOARDING_REDIRECT_URL")
-
-
-async def get_start_params(nonce: str) -> str | None:
-    if not nonce:
-        return None
-    elif nonce == StartParamEnum.mobile:
-        return os.environ.get("MOBILE_REDIRECT_URI")
-    elif nonce == StartParamEnum.web:
-        return os.environ.get("WEB_REDIRECT_URI")
-
-
 def encrypt_api_key(api_key) -> str:
     return cipher_suite.encrypt(str.encode(api_key)).decode('utf-8')
 
 
 def verify_login(login: str) -> str:
+    # https://t.me/echpochiMac
     if not login:
         raise ValueError("Логин не указан")
+    if "t.me" in login:
+        login = login.split("/")[-1]
     if not login.startswith("@"):
         return f"@{login}"
     return login
@@ -59,3 +44,4 @@ def is_valid_url(url: str) -> bool:
     if url.startswith("https") or url.startswith("tg"):
         return True
     return False
+
