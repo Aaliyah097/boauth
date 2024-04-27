@@ -35,7 +35,8 @@ async def check_health(msg: Message):
 
 @router.message(Command("start"))
 async def start_handler(msg: Message, command: CommandObject):
-    login, first_name, telegram_id = msg.from_user.username, msg.from_user.first_name or msg.from_user.username, str(msg.from_user.id)
+    login, first_name, telegram_id = msg.from_user.username, msg.from_user.first_name or msg.from_user.username, str(
+        msg.from_user.id)
 
     if not login:
         await msg.answer(vars.LOGIN_NOT_FOUND_MESSAGE, parse_mode=ParseMode.HTML)
@@ -52,7 +53,8 @@ async def start_handler(msg: Message, command: CommandObject):
 
     if command.args:
         # отправляем назад в приложение
-        redirect_url = os.environ.get("MOBILE_REDIRECT_URI", "%s") if command.args == 'mobile' else os.environ.get("WEB_REDIRECT_URI", "%s")
+        redirect_url = os.environ.get(
+            "MOBILE_REDIRECT_URI", "%s") if command.args == 'mobile' else os.environ.get("WEB_REDIRECT_URI", "%s")
         message = vars.AUTH_SUCCESS % (str(first_name), str(nonce))
     else:
         if not account.partial_signup:
@@ -82,21 +84,22 @@ async def start_handler(msg: Message, command: CommandObject):
             parse_mode=ParseMode.HTML
         )
     else:
-        if not account.partial_signup: 
+        if not account.partial_signup:
             # одноразовый код + ссылка на ВЕБАП
             await msg.answer(
-                message, 
-                parse_mode=ParseMode.HTML, 
+                message,
+                parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup(
                     row_width=1,
                     inline_keyboard=[
                         [
                             InlineKeyboardButton(
-                                text='Завершить регистрацию', 
+                                text='Завершить регистрацию',
                                 web_app=WebAppInfo(
-                                        url=os.environ.get("WEB_ONBOARDING_REDIRECT_URL", "%s") % nonce
-                                    )
+                                    url=os.environ.get(
+                                        "WEB_ONBOARDING_REDIRECT_URL", "%s") % nonce
                                 )
+                            )
                         ]
                     ]
                 )
@@ -107,7 +110,8 @@ async def start_handler(msg: Message, command: CommandObject):
 
 @router.message(Command("friend"))
 async def calc_friendship(msg: Message, command: CommandObject):
-    login, first_name, telegram_id = msg.from_user.username, msg.from_user.first_name, str(msg.from_user.id)
+    login, first_name, telegram_id = msg.from_user.username, msg.from_user.first_name, str(
+        msg.from_user.id)
 
     try:
         account = await get_account(verify_login(login))
@@ -117,18 +121,19 @@ async def calc_friendship(msg: Message, command: CommandObject):
     if not account or not account.partial_signup:
         nonce = await store_telegram_id(make_nonce(), telegram_id)
         await msg.answer(
-            vars.ONBOARDING_REQUIRED % ((first_name or login), nonce), 
-            parse_mode=ParseMode.HTML, 
+            vars.ONBOARDING_REQUIRED % ((first_name or login), nonce),
+            parse_mode=ParseMode.HTML,
             reply_markup=InlineKeyboardMarkup(
                 row_width=1,
                 inline_keyboard=[
                     [
                         InlineKeyboardButton(
-                            text='Завершить регистрацию', 
+                            text='Завершить регистрацию',
                             web_app=WebAppInfo(
-                                    url=os.environ.get("WEB_ONBOARDING_REDIRECT_URL", "%s") % nonce
-                                )
+                                url=os.environ.get(
+                                    "WEB_ONBOARDING_REDIRECT_URL", "%s") % nonce
                             )
+                        )
                     ]
                 ]
             )
@@ -145,7 +150,8 @@ async def calc_friendship(msg: Message, command: CommandObject):
 
 @router.message()
 async def handle_message(msg: Message):
-    login, first_name, telegram_id = msg.from_user.username, msg.from_user.first_name, str(msg.from_user.id)
+    login, first_name, telegram_id = msg.from_user.username, msg.from_user.first_name, str(
+        msg.from_user.id)
 
     action = Action(telegram_id)
     last_action = await action.get_last()

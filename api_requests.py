@@ -16,6 +16,7 @@ headers = {
     "x-api-key": encrypt_api_key(os.environ.get("API_KEY")),
 }
 
+
 async def get_account(telegram_login: str) -> Account:
     async with AsyncClient(base_url=host, verify=False) as client:
         response = await client.get(
@@ -30,7 +31,6 @@ async def get_account(telegram_login: str) -> Account:
         return Account(
             login_tg=response[0]['login_tg'],
             id_tg=str(response[0]['id_tg']) if response[0]['id_tg'] else None,
-            is_active=response[0]['is_active'],
             is_onboarded=response[0]['is_onboarded'],
             vocabulary_category=response[0]['vocabulary_category'],
             birthday=response[0]['birthday'],
@@ -79,7 +79,6 @@ async def signup_user(tg_username: str, tg_id: str) -> Account:
     return Account(
         login_tg=tg_username,
         id_tg=tg_id,
-        is_active=True,
         is_onboarded=False,
         birthday=None,
         values=[],
