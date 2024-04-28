@@ -49,6 +49,15 @@ async def check_health(msg: Message):
 
 @router.message(F.user_shared)
 async def on_user_shared(message: Message):
+    buttons_pack = [
+        SelectFriendButton(message.user_shared.request_id),
+        MainMenuButton(),
+        FamousFriendButton()
+    ]
+    builder = ReplyKeyboardBuilder()
+    for button in buttons_pack:
+        builder.row(button)
+
     try:
         k = await calc_friendship_k(message.user_shared.request_id,
                                     message.user_shared.user_id)
@@ -62,15 +71,6 @@ async def on_user_shared(message: Message):
             reply_markup=builder.as_markup(resize_keyboard=True)
         )
         return
-
-    buttons_pack = [
-        SelectFriendButton(message.user_shared.request_id),
-        MainMenuButton(),
-        FamousFriendButton()
-    ]
-    builder = ReplyKeyboardBuilder()
-    for button in buttons_pack:
-        builder.row(button)
 
     file = await make_friend_k_picture(k)
     file.seek(0)
