@@ -1,9 +1,12 @@
 import os
+from io import BytesIO
 from enum import Enum
 import random
+import cairosvg
+import aiofiles
 from cryptography.fernet import Fernet
 from cache import RedisConnector
-
+import vars
 
 cipher_suite = Fernet(os.environ.get("ENCRYPTION_KEY").encode())
 
@@ -11,6 +14,22 @@ cipher_suite = Fernet(os.environ.get("ENCRYPTION_KEY").encode())
 class StartParamEnum(str, Enum):
     mobile = "mobile"
     web = "web"
+
+
+async def make_friend_k_picture(k: int) -> BytesIO:
+    png_output = BytesIO()
+    async with aiofiles.open('static/friend_k copy.svg', 'rb') as file:
+        svg_content = await file.read()
+        svg_content = svg_content.replace(
+            "{{percent}}".encode('utf-8'),
+            f"{k}".encode('utf-8')
+        )
+
+        cairosvg.svg2png(bytestring=svg_content,
+                         write_to=png_output, background_color='black')
+
+    png_output.seek(0)
+    return png_output
 
 
 def encrypt_api_key(api_key) -> str:
@@ -44,4 +63,3 @@ def is_valid_url(url: str) -> bool:
     if url.startswith("https") or url.startswith("tg"):
         return True
     return False
-

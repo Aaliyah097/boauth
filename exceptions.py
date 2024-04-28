@@ -4,3 +4,7 @@ class UserNotFoundError(Exception):
 
 class SignupFailedException(Exception):
     pass
+
+
+class UnknownError(Exception):
+    pass

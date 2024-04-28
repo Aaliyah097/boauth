@@ -8,6 +8,9 @@ archive
 static
 !main/static
 
+localhost+2-key.pem
+localhost+2.pem
+
 
 # Backup files #
 *.bak

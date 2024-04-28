@@ -5,7 +5,7 @@ from string import ascii_letters
 from dotenv import load_dotenv
 from httpx import AsyncClient
 from utils import encrypt_api_key
-from exceptions import UserNotFoundError, SignupFailedException
+from exceptions import UserNotFoundError, SignupFailedException, UnknownError
 from models import Account
 
 
@@ -84,3 +84,19 @@ async def signup_user(tg_username: str, tg_id: str) -> Account:
         values=[],
         vocabulary_category=None
     )
+
+
+async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> int:
+    async with AsyncClient(base_url=host, verify=False) as client:
+        response = await client.post(
+            url=f'/api/accounts/friendship-coef/{str(telegram_id_user)}/{str(telegram_id_friend)}',
+            headers=headers,
+        )
+        print(response.status_code, response.text)
+        match response.status_code:
+            case 404:
+                raise UserNotFoundError()
+            case 200:
+                return int(response.json()['coef'])
+            case _:
+                raise UnknownError("Ой-ой...Что-то пошло не так 😰")
