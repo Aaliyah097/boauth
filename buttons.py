@@ -1,4 +1,5 @@
 import os
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, KeyboardButton, WebAppInfo, KeyboardButtonRequestUser
 import vars
 
@@ -30,3 +31,21 @@ def MainMenuButton():
 
 def FamousFriendButton():
     return KeyboardButton(text=vars.FAMOUES_FRIEND_BUTTON)
+
+
+def ProductionButton():
+    return KeyboardButton(text=vars.PRODUCTION_STATUS)
+
+
+def Menu(telegram_id) -> ReplyKeyboardBuilder:
+    buttons_pack = [
+        SelectFriendButton(telegram_id),
+        MainMenuButton(),
+        FamousFriendButton(),
+        ProductionButton()
+    ]
+    builder = ReplyKeyboardBuilder()
+    for button in buttons_pack:
+        builder.row(button)
+
+    return builder
