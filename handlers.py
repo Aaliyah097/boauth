@@ -119,7 +119,7 @@ async def handle_select_friend_request(msg: Message):
     builder.row(buttons.SelectFriendButton(telegram_id))
 
     await msg.answer(
-        vars.SELECT_FRIEND_REQUEST % str(username),
+        vars.SELECT_FRIEND_REQUEST,
         parse_mode=ParseMode.HTML,
         reply_markup=builder.as_markup(resize_keyboard=True),
     )
@@ -177,7 +177,7 @@ async def handle_message(msg: Message):
         builder = ReplyKeyboardBuilder()
         builder.row(buttons.SelectFriendButton(telegram_id))
         await msg.answer(
-            vars.SELECT_FRIEND_REQUEST % (first_name or login),
+            vars.SELECT_FRIEND_REQUEST,
             parse_mode=ParseMode.HTML,
             reply_markup=builder.as_markup(resize_keyboard=True),
         )
