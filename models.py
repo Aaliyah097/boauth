@@ -29,6 +29,18 @@ class Account:
             self.full_signup = True
 
 
+class StarProfile:
+    def __init__(self,
+                 id_tg: int,
+                 photo: str,
+                 gender: str,
+                 name: str):
+        self.id_tg: int = id_tg
+        self.photo: str = photo
+        self.gender: str = gender
+        self.name: str = name
+
+
 class Action:
     def __init__(self, tg_id: str):
         self.tg_id = str(tg_id)

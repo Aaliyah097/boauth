@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from httpx import AsyncClient
 from utils import encrypt_api_key
 from exceptions import UserNotFoundError, SignupFailedException, UnknownError
-from models import Account
+from models import Account, StarProfile
 
 
 load_dotenv('.env')
@@ -92,11 +92,31 @@ async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> i
             url=f'/api/accounts/friendship-coef/{str(telegram_id_user)}/{str(telegram_id_friend)}',
             headers=headers,
         )
-        print(response.status_code, response.text)
         match response.status_code:
             case 404:
                 raise UserNotFoundError()
             case 200:
                 return int(response.json()['coef'])
+            case _:
+                raise UnknownError("Ой-ой...Что-то пошло не так 😰")
+
+
+async def get_stars_accounts() -> list[StarProfile]:
+    async with AsyncClient(base_url=host, verify=False) as client:
+        response = await client.get(
+            url='/api/accounts/?is_star=true',
+            headers=headers
+        )
+        match response.status_code:
+            case 200:
+                return [
+                    StarProfile(
+                        name=d['name'],
+                        gender=d['gender'],
+                        photo=d['photo'],
+                        id_tg=d['id_tg']
+                    )
+                    for d in response.json()
+                ]
             case _:
                 raise UnknownError("Ой-ой...Что-то пошло не так 😰")

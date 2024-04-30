@@ -1,5 +1,6 @@
 # t.me/regbo_bot
 import os
+import random
 from enum import Enum
 from dotenv import load_dotenv
 import aiogram.exceptions
@@ -25,9 +26,17 @@ from utils import (
     make_nonce,
     store_telegram_id,
     is_valid_url,
-    make_friend_k_picture
+    make_friend_k_picture,
+    download_photo,
+    make_star_k_picture
 )
-from api_requests import get_account, activate_account, signup_user, calc_friendship_k
+from api_requests import (
+    get_account,
+    activate_account,
+    signup_user,
+    calc_friendship_k,
+    get_stars_accounts
+)
 import exceptions
 import vars
 import models
@@ -151,7 +160,7 @@ async def handle_start(msg: Message, command: CommandObject):
 
 
 @router.message(lambda message: message.text == vars.MAIN_MENU_BUTTON)
-async def without_puree(message: Message):
+async def handle_main_menu(message: Message):
     await message.answer(
         text=vars.MAIN_MENU_TEXT,
         reply_markup=buttons.Menu(
@@ -160,11 +169,38 @@ async def without_puree(message: Message):
 
 
 @router.message(lambda message: message.text == vars.PRODUCTION_STATUS)
-async def without_puree(message: Message):
+async def handle_production_status(message: Message):
     await message.answer(
         text=vars.PRODUCTION_STATUS_TEXT,
         reply_markup=buttons.Menu(
             message.from_user.id).as_markup(resize_keyboard=True)
+    )
+
+
+@router.message(lambda message: message.text == vars.FAMOUES_FRIEND_BUTTON)
+async def handle_famous_friend(message: Message):
+    builder = buttons.Menu(message.from_user.id)
+
+    try:
+        star = random.choice(await get_stars_accounts())
+    except IndexError:
+        await message.answer(text=vars.NO_FAMOUS_FRIENDS_FOUND)
+        return
+
+    k = await calc_friendship_k(message.from_user.id,
+                                star.id_tg)
+
+    file = await make_star_k_picture(k, await download_photo(star.photo))
+    file.seek(0)
+
+    await message.answer_photo(
+        BufferedInputFile(
+            file.read(),
+            f'{message.from_user.id}_{star.id_tg}_k.png'
+        ),
+        caption=vars.FAMOUS_FRIEND_K_RESULT % (
+            star.name, 'ему' if star.gender == 'm' else 'ей'),
+        reply_markup=builder.as_markup(resize_keyboard=True)
     )
 
 

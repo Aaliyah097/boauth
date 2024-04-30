@@ -1,11 +1,14 @@
 import os
+import base64
 from io import BytesIO
 from enum import Enum
 import random
 import cairosvg
 import aiofiles
+from httpx import AsyncClient
 from cryptography.fernet import Fernet
 from cache import RedisConnector
+from exceptions import UnknownError
 import vars
 
 cipher_suite = Fernet(os.environ.get("ENCRYPTION_KEY").encode())
@@ -16,9 +19,65 @@ class StartParamEnum(str, Enum):
     web = "web"
 
 
-async def make_friend_k_picture(k: int) -> BytesIO:
+async def download_photo(link: str) -> bytes:
+    async with AsyncClient(verify=False) as client:
+        response = await client.get(
+            url=link
+        )
+        match response.status_code:
+            case 200:
+                return base64.b64encode(response.content)
+            case _:
+                UnknownError("Ой-ой...Что-то пошло не так 😰")
+
+
+def normalize_k(k: int) -> int:
+    try:
+        k = int(k)
+    except ValueError:
+        k = 0
+
+    if k > 99:
+        k = 99
+    if k < 10:
+        k = 10
+
+    return k
+
+
+async def make_star_k_picture(k: int, star_photo: bytes) -> BytesIO:
+    k = normalize_k(k)
     png_output = BytesIO()
-    async with aiofiles.open('static/friend_k copy.svg', 'rb') as file:
+
+    async with aiofiles.open('static/k_star.svg', 'rb') as file:
+        svg_content = await file.read()
+        svg_content = svg_content.replace(
+            "{{percent}}".encode('utf-8'),
+            f"{k}".encode('utf-8')
+        ).replace(
+            "{{picture}}".encode('utf-8'),
+            star_photo
+        )
+
+        cairosvg.svg2png(bytestring=svg_content,
+                         write_to=png_output, background_color='black')
+
+    png_output.seek(0)
+    return png_output
+
+
+async def make_friend_k_picture(k: int) -> BytesIO:
+    k = normalize_k(k)
+
+    if k < 50:
+        picture_name = '0-49.svg'
+    elif k < 75:
+        picture_name = '50-74.svg'
+    else:
+        picture_name = '75-100.svg'
+
+    png_output = BytesIO()
+    async with aiofiles.open(f'static/{picture_name}', 'rb') as file:
         svg_content = await file.read()
         svg_content = svg_content.replace(
             "{{percent}}".encode('utf-8'),
