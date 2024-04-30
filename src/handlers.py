@@ -131,15 +131,6 @@ async def handle_start(msg: Message, command: CommandObject):
     await handle_select_friend_request(msg)
 
 
-@router.message(lambda message: message.text == vars.MAIN_MENU_BUTTON)
-async def handle_main_menu(message: Message):
-    await message.answer(
-        text=vars.MAIN_MENU_TEXT,
-        reply_markup=buttons.Menu(
-            message.from_user.id).as_markup(resize_keyboard=True)
-    )
-
-
 @router.message(lambda message: message.text == vars.PRODUCTION_STATUS)
 async def handle_production_status(message: Message):
     await message.answer(
