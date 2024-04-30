@@ -1,7 +1,7 @@
 import os
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, KeyboardButton, WebAppInfo, KeyboardButtonRequestUser
-import vars
+from src import vars
 
 
 def BackToAppButton(redirect_url: str):
@@ -40,7 +40,6 @@ def ProductionButton():
 def Menu(telegram_id) -> ReplyKeyboardBuilder:
     buttons_pack = [
         SelectFriendButton(telegram_id),
-        MainMenuButton(),
         FamousFriendButton(),
         ProductionButton()
     ]

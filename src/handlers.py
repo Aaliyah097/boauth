@@ -4,7 +4,7 @@ import random
 from enum import Enum
 from dotenv import load_dotenv
 import aiogram.exceptions
-from aiogram import F
+from aiogram import F, flags
 from aiogram import Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import (
@@ -21,7 +21,7 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram.enums import ParseMode
-from utils import (
+from src.utils import (
     verify_login,
     make_nonce,
     store_telegram_id,
@@ -30,17 +30,17 @@ from utils import (
     download_photo,
     make_star_k_picture
 )
-from api_requests import (
+from src.api_requests import (
     get_account,
     activate_account,
     signup_user,
     calc_friendship_k,
     get_stars_accounts
 )
-import exceptions
-import vars
-import models
-import buttons
+from src import exceptions
+from src import vars
+from src import models
+from src import buttons
 
 
 load_dotenv(".env")
@@ -52,7 +52,8 @@ async def check_health(msg: Message):
     await msg.reply("OK")
 
 
-@ router.message(F.user_shared)
+@router.message(F.user_shared)
+@flags.signup_confirm_required()
 async def on_user_shared(message: Message):
     builder = buttons.Menu(message.from_user.id)
 
@@ -60,15 +61,13 @@ async def on_user_shared(message: Message):
         k = await calc_friendship_k(message.user_shared.request_id,
                                     message.user_shared.user_id)
     except exceptions.UnknownError as e:
-        await message.answer(text=str(e))
-        return
+        return await message.answer(text=str(e))
     except exceptions.UserNotFoundError:
-        await message.answer_photo(
+        return await message.answer_photo(
             FSInputFile('static/user_not_found.jpg'),
-            caption=vars.USER_NOT_FOUND % "Твоем друге",
+            caption=vars.USER_NOT_FOUND,
             reply_markup=builder.as_markup(resize_keyboard=True)
         )
-        return
 
     file = await make_friend_k_picture(k)
     file.seek(0)
@@ -83,80 +82,53 @@ async def on_user_shared(message: Message):
 
 
 async def handle_auth(msg: Message, command: CommandObject):
-    telegram_id, username = str(msg.from_user.id), str(
-        msg.from_user.first_name or msg.from_user.login)
-
-    nonce = await store_telegram_id(make_nonce(), telegram_id)
+    nonce = await store_telegram_id(make_nonce(), msg.from_user.id)
 
     if command.args == 'mobile':
-        redirect_url = os.environ.get("MOBILE_REDIRECT_URI", "%s") % str(nonce)
+        redirect_url = os.environ.get("MOBILE_REDIRECT_URI", "%s") % nonce
     else:
-        redirect_url = os.environ.get("WEB_REDIRECT_URI", "%s") % str(nonce)
+        redirect_url = os.environ.get("WEB_REDIRECT_URI", "%s") % nonce
 
-    message = vars.AUTH_SUCCESS % (username, str(nonce))
     builder = InlineKeyboardBuilder()
-    builder.row(buttons.BackToAppButton(str(redirect_url)))
+    builder.row(buttons.BackToAppButton(redirect_url))
 
     await msg.answer(
-        message,
-        reply_markup=builder.as_markup(
-            one_time_keyboard=True) if builder else None,
-        parse_mode=ParseMode.HTML
+        vars.AUTH_SUCCESS % nonce,
+        reply_markup=builder.as_markup(one_time_keyboard=True),
     )
 
 
 async def handle_signup_required(msg: Message):
-    telegram_id = str(msg.from_user.id)
-
-    nonce = await store_telegram_id(make_nonce(), telegram_id)
-
     builder = ReplyKeyboardBuilder()
-    builder.row(buttons.SignupFinishButton(str(nonce)))
+    builder.row(
+        buttons.SignupFinishButton(
+            await store_telegram_id(make_nonce(), msg.from_user.id)
+        )
+    )
 
     await msg.answer(
         vars.ONBOARDING_REQUIRED,
-        parse_mode=ParseMode.HTML,
         reply_markup=builder.as_markup(resize_keyboard=True),
     )
 
 
 async def handle_select_friend_request(msg: Message):
-    telegram_id, username = str(msg.from_user.id), str(
-        msg.from_user.first_name or msg.from_user.login)
-
     builder = ReplyKeyboardBuilder()
-    builder.row(buttons.SelectFriendButton(telegram_id))
+    builder.row(buttons.SelectFriendButton(msg.from_user.id))
 
     await msg.answer(
         vars.SELECT_FRIEND_REQUEST,
-        parse_mode=ParseMode.HTML,
         reply_markup=builder.as_markup(resize_keyboard=True),
     )
-    return
 
 
-@ router.message(Command("start"))
+@router.message(Command("start"))
+@flags.signup_confirm_required()
 async def handle_start(msg: Message, command: CommandObject):
-    login, first_name, telegram_id = msg.from_user.username, msg.from_user.first_name or msg.from_user.username, str(
-        msg.from_user.id)
-
-    if not login:
-        await msg.answer(vars.LOGIN_NOT_FOUND_MESSAGE, parse_mode=ParseMode.HTML)
-        return
-
-    try:
-        account = await get_account(verify_login(login))
-    except exceptions.UserNotFoundError:
-        account = await signup_user(login, telegram_id)
-
     if command.args:
-        await handle_auth(msg, command)
-        return
+        return await handle_auth(msg, command)
 
-    if not account.partial_signup:
-        await handle_signup_required(msg)
-    else:
-        await handle_select_friend_request(msg)
+    await handle_select_friend_request(msg)
 
 
 @router.message(lambda message: message.text == vars.MAIN_MENU_BUTTON)
@@ -178,19 +150,19 @@ async def handle_production_status(message: Message):
 
 
 @router.message(lambda message: message.text == vars.FAMOUES_FRIEND_BUTTON)
+@flags.signup_confirm_required()
 async def handle_famous_friend(message: Message):
     builder = buttons.Menu(message.from_user.id)
 
     try:
         star = random.choice(await get_stars_accounts())
     except IndexError:
-        await message.answer(text=vars.NO_FAMOUS_FRIENDS_FOUND)
-        return
+        return await message.answer(text=vars.NO_FAMOUS_FRIENDS_FOUND)
 
-    k = await calc_friendship_k(message.from_user.id,
-                                star.id_tg)
-
-    file = await make_star_k_picture(k, await download_photo(star.photo))
+    file = await make_star_k_picture(
+        await calc_friendship_k(message.from_user.id, star.id_tg),
+        await download_photo(star.photo)
+    )
     file.seek(0)
 
     await message.answer_photo(
@@ -199,24 +171,24 @@ async def handle_famous_friend(message: Message):
             f'{message.from_user.id}_{star.id_tg}_k.png'
         ),
         caption=vars.FAMOUS_FRIEND_K_RESULT % (
-            star.name, 'ему' if star.gender == 'm' else 'ей'),
+            star.name, 'ему' if star.gender == 'm' else 'ей'
+        ),
         reply_markup=builder.as_markup(resize_keyboard=True)
     )
 
 
-@ router.message()
+@router.message()
 async def handle_message(msg: Message):
-    login, first_name, telegram_id = msg.from_user.username, msg.from_user.first_name, str(
-        msg.from_user.id)
-
-    if msg.web_app_data:
-        builder = ReplyKeyboardBuilder()
-        builder.row(buttons.SelectFriendButton(telegram_id))
-        await msg.answer(
-            vars.SELECT_FRIEND_REQUEST,
-            parse_mode=ParseMode.HTML,
-            reply_markup=builder.as_markup(resize_keyboard=True),
+    if not msg.web_app_data:
+        return await msg.answer(
+            vars.MAIN_MENU_TEXT,
+            reply_markup=buttons.Menu(
+                msg.from_user.id).as_markup(resize_keyboard=True)
         )
-        return
 
-    await msg.answer(vars.DONT_UNDERSTAND % (first_name or login))
+    builder = ReplyKeyboardBuilder()
+    builder.row(buttons.SelectFriendButton(msg.from_user.id))
+    return await msg.answer(
+        vars.SELECT_FRIEND_REQUEST,
+        reply_markup=builder.as_markup(resize_keyboard=True),
+    )

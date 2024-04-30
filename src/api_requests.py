@@ -4,9 +4,9 @@ from copy import copy
 from string import ascii_letters
 from dotenv import load_dotenv
 from httpx import AsyncClient
-from utils import encrypt_api_key
-from exceptions import UserNotFoundError, SignupFailedException, UnknownError
-from models import Account, StarProfile
+from src.utils import encrypt_api_key
+from src.exceptions import UserNotFoundError, SignupFailedException, UnknownError
+from src.models import Account, StarProfile
 
 
 load_dotenv('.env')

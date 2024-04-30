@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from cache import RedisConnector
+from src.cache import RedisConnector
 
 
 class Account:

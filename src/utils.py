@@ -1,3 +1,4 @@
+from typing import Awaitable
 import os
 import base64
 from io import BytesIO
@@ -7,9 +8,10 @@ import cairosvg
 import aiofiles
 from httpx import AsyncClient
 from cryptography.fernet import Fernet
-from cache import RedisConnector
-from exceptions import UnknownError
-import vars
+from src.cache import RedisConnector
+from src.exceptions import UnknownError
+from src import vars
+
 
 cipher_suite = Fernet(os.environ.get("ENCRYPTION_KEY").encode())
 
@@ -46,46 +48,49 @@ def normalize_k(k: int) -> int:
 
 
 async def make_star_k_picture(k: int, star_photo: bytes) -> BytesIO:
-    k = normalize_k(k)
-    png_output = BytesIO()
+    k, png_output = normalize_k(k), BytesIO()
 
     async with aiofiles.open('static/k_star.svg', 'rb') as file:
         svg_content = await file.read()
         svg_content = svg_content.replace(
-            "{{percent}}".encode('utf-8'),
-            f"{k}".encode('utf-8')
+            b"{{percent}}",
+            str(k).encode('utf-8')
         ).replace(
-            "{{picture}}".encode('utf-8'),
+            b"{{picture}}",
             star_photo
         )
 
-        cairosvg.svg2png(bytestring=svg_content,
-                         write_to=png_output, background_color='black')
+        cairosvg.svg2png(
+            bytestring=svg_content,
+            write_to=png_output,
+            background_color='black'
+        )
 
     png_output.seek(0)
     return png_output
 
 
 async def make_friend_k_picture(k: int) -> BytesIO:
-    k = normalize_k(k)
-
+    k, png_output = normalize_k(k), BytesIO()
     if k < 50:
-        picture_name = '0-49.svg'
+        picture_name = '0-49.svg'  # TODO
     elif k < 75:
-        picture_name = '50-74.svg'
+        picture_name = '50-74.svg'  # TODO
     else:
         picture_name = '75-100.svg'
 
-    png_output = BytesIO()
     async with aiofiles.open(f'static/{picture_name}', 'rb') as file:
         svg_content = await file.read()
         svg_content = svg_content.replace(
-            "{{percent}}".encode('utf-8'),
-            f"{k}".encode('utf-8')
+            b"{{percent}}",
+            str(k).encode('utf-8')
         )
 
-        cairosvg.svg2png(bytestring=svg_content,
-                         write_to=png_output, background_color='black')
+        cairosvg.svg2png(
+            bytestring=svg_content,
+            write_to=png_output,
+            background_color='black'
+        )
 
     png_output.seek(0)
     return png_output
@@ -96,7 +101,6 @@ def encrypt_api_key(api_key) -> str:
 
 
 def verify_login(login: str) -> str:
-    # https://t.me/echpochiMac
     if not login:
         raise ValueError("Логин не указан")
     if "t.me" in login:
@@ -115,7 +119,7 @@ async def store_telegram_id(nonce: str, telegram_id: str) -> str:
     async with RedisConnector() as connection:
         await connection.set(nonce, str(telegram_id))
         await connection.expire(nonce, 15 * 60)
-        return nonce
+        return str(nonce)
 
 
 def is_valid_url(url: str) -> bool:
