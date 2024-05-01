@@ -47,6 +47,16 @@ def normalize_k(k: int) -> int:
     return k
 
 
+def get_k_message(k: int) -> str:
+    if k >= 75:
+        return vars.K_75_100
+    return vars.K_0_75
+
+
+def get_id_number(telegram_id: int) -> int:
+    return (telegram_id % (10 - 3 + 1)) + 3
+
+
 async def make_star_k_picture(k: int, star_photo: bytes) -> BytesIO:
     k, png_output = normalize_k(k), BytesIO()
 

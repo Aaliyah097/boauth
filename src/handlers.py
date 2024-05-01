@@ -28,7 +28,9 @@ from src.utils import (
     is_valid_url,
     make_friend_k_picture,
     download_photo,
-    make_star_k_picture
+    make_star_k_picture,
+    get_id_number,
+    get_k_message
 )
 from src.api_requests import (
     get_account,
@@ -76,7 +78,7 @@ async def on_user_shared(message: Message):
             file.read(),
             f'{message.user_shared.request_id}_{message.user_shared.user_id}_k.png'
         ),
-        caption=vars.K_FRIENDSHIP_EXPLANATION,
+        caption=get_k_message(k) % str(get_id_number(message.from_user.id)),
         reply_markup=builder.as_markup(resize_keyboard=True)
     )
 
@@ -95,20 +97,6 @@ async def handle_auth(msg: Message, command: CommandObject):
     await msg.answer(
         vars.AUTH_SUCCESS % nonce,
         reply_markup=builder.as_markup(one_time_keyboard=True),
-    )
-
-
-async def handle_signup_required(msg: Message):
-    builder = ReplyKeyboardBuilder()
-    builder.row(
-        buttons.SignupFinishButton(
-            await store_telegram_id(make_nonce(), msg.from_user.id)
-        )
-    )
-
-    await msg.answer(
-        vars.ONBOARDING_REQUIRED,
-        reply_markup=builder.as_markup(resize_keyboard=True),
     )
 
 
