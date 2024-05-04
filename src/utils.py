@@ -82,6 +82,7 @@ async def make_star_k_picture(k: int, star_photo: bytes) -> BytesIO:
 
 async def make_friend_k_picture(k: int) -> BytesIO:
     k, png_output = normalize_k(k), BytesIO()
+    k = 10
     if k < 50:
         picture_name = '0-49.svg'  # TODO
     elif k < 75:
