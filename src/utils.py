@@ -60,7 +60,7 @@ def get_id_number(telegram_id: int) -> int:
 async def make_star_k_picture(k: int, star_photo: bytes) -> BytesIO:
     k, png_output = normalize_k(k), BytesIO()
 
-    async with aiofiles.open('static/k_star.svg', 'rb') as file:
+    async with aiofiles.open('static/zvezda.svg', 'rb') as file:
         svg_content = await file.read()
         svg_content = svg_content.replace(
             b"{{percent}}",
@@ -83,11 +83,11 @@ async def make_star_k_picture(k: int, star_photo: bytes) -> BytesIO:
 async def make_friend_k_picture(k: int) -> BytesIO:
     k, png_output = normalize_k(k), BytesIO()
     if k < 50:
-        picture_name = '0-49.svg'  # TODO
+        picture_name = 'updated_0_49.svg'  # TODO
     elif k < 75:
-        picture_name = '50-74.svg'  # TODO
+        picture_name = 'updated_50_74.svg'  # TODO
     else:
-        picture_name = '75-100.svg'
+        picture_name = 'updated_75_100.svg'
 
     async with aiofiles.open(f'static/{picture_name}', 'rb') as file:
         svg_content = await file.read()
