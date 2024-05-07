@@ -48,6 +48,7 @@ class AuthorizationMiddleware(BaseMiddleware):
                 return await event.answer(
                     vars.ONBOARDING_REQUIRED,
                     reply_markup=builder.as_markup(resize_keyboard=True),
+
                 )
 
         return await handler(event, data)

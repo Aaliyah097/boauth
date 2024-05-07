@@ -120,6 +120,7 @@ async def handle_start(msg: Message, command: CommandObject):
 
 
 @router.message(lambda message: message.text == vars.PRODUCTION_STATUS)
+@flags.signup_confirm_required()
 async def handle_production_status(message: Message):
     await message.answer(
         text=vars.PRODUCTION_STATUS_TEXT,
@@ -157,6 +158,7 @@ async def handle_famous_friend(message: Message):
 
 
 @router.message()
+@flags.signup_confirm_required()
 async def handle_message(msg: Message):
     if not msg.web_app_data:
         return await msg.answer(
