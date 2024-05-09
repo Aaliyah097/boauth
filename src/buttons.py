@@ -21,7 +21,7 @@ def SelectFriendButton(request_id: int):
     return KeyboardButton(
         text=vars.SELECT_FRIEND_BUTTON,
         request_user=KeyboardButtonRequestUser(
-            request_id=request_id or random.randint(1, 999999),
+            request_id=random.randint(1, 999999),
         )
     )
 
