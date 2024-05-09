@@ -122,8 +122,9 @@ async def handle_start(msg: Message, command: CommandObject):
 @router.message(lambda message: message.text == vars.PRODUCTION_STATUS)
 @flags.signup_confirm_required()
 async def handle_production_status(message: Message):
-    await message.answer(
-        text=vars.PRODUCTION_STATUS_TEXT,
+    return await message.answer_photo(
+        FSInputFile('static/prod_status.jpg'),
+        caption=vars.PRODUCTION_STATUS_TEXT,
         reply_markup=buttons.Menu(
             message.from_user.id).as_markup(resize_keyboard=True)
     )
