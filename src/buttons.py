@@ -1,4 +1,5 @@
 import os
+import random
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, KeyboardButton, WebAppInfo, KeyboardButtonRequestUser
 from src import vars
@@ -20,7 +21,7 @@ def SelectFriendButton(request_id: int):
     return KeyboardButton(
         text=vars.SELECT_FRIEND_BUTTON,
         request_user=KeyboardButtonRequestUser(
-            request_id=request_id,
+            request_id=request_id or random.randint(1, 999999),
         )
     )
 
