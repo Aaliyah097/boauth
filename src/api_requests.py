@@ -89,7 +89,7 @@ async def signup_user(tg_username: str, tg_id: str) -> Account:
 async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> int:
     async with AsyncClient(base_url=host, verify=False) as client:
         response = await client.post(
-            url=f'/api/accounts/friendship-coef/{str(telegram_id_user)}/{str(telegram_id_friend)}',
+            url=f'/api/accounts/friendship-coef/?tg1={str(telegram_id_user)}&tg2={str(telegram_id_friend)}',
             headers=headers,
         )
         match response.status_code:
