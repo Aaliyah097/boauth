@@ -60,7 +60,7 @@ async def on_user_shared(message: Message):
     builder = buttons.Menu(message.from_user.id)
 
     try:
-        k = await calc_friendship_k(message.user_shared.request_id,
+        k = await calc_friendship_k(message.from_user.id,
                                     message.user_shared.user_id)
     except exceptions.UnknownError as e:
         return await message.answer(text=str(e))
