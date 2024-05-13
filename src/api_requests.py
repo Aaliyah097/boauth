@@ -1,3 +1,4 @@
+import json
 import os
 import random
 from copy import copy
@@ -7,6 +8,7 @@ from httpx import AsyncClient
 from src.utils import encrypt_api_key
 from src.exceptions import UserNotFoundError, SignupFailedException, UnknownError
 from src.models import Account, StarProfile
+from src.cache import RedisConnector
 
 
 load_dotenv('.env')
@@ -102,21 +104,30 @@ async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> i
 
 
 async def get_stars_accounts() -> list[StarProfile]:
-    async with AsyncClient(base_url=host, verify=False) as client:
-        response = await client.get(
-            url='/api/accounts/?is_star=true',
-            headers=headers
-        )
-        match response.status_code:
-            case 200:
-                return [
-                    StarProfile(
-                        name=d['name'],
-                        gender=d['gender'],
-                        photo=d['photo'],
-                        id_tg=d['id_tg']
-                    )
-                    for d in response.json()
-                ]
-            case _:
-                raise UnknownError("Ой-ой...Что-то пошло не так 😰")
+    async with RedisConnector() as r_client:
+        res = await r_client.get("stars")
+        if res:
+            return [StarProfile.deserialize(s) for s in json.loads(res.decode("utf-8"))['stars']]
+
+        async with AsyncClient(base_url=host, verify=False) as client:
+            response = await client.get(
+                url='/api/accounts/?is_star=true',
+                headers=headers
+            )
+            match response.status_code:
+                case 200:
+                    stars = [
+                        StarProfile(
+                            name=d['name'],
+                            gender=d['gender'],
+                            photo=d['photo'],
+                            id_tg=d['id_tg']
+                        )
+                        for d in response.json()
+                    ]
+
+                    await r_client.set("stars", json.dumps({"stars": [s.serialize() for s in stars]}))
+
+                    return stars
+                case _:
+                    raise UnknownError("Ой-ой...Что-то пошло не так 😰")

@@ -56,10 +56,27 @@ class StarProfile:
                  photo: str,
                  gender: str,
                  name: str):
-        self.id_tg: int = id_tg
-        self.photo: str = photo
-        self.gender: str = gender
-        self.name: str = name
+        self.id_tg: int = id_tg or 0
+        self.photo: str = photo or ""
+        self.gender: str = gender or ""
+        self.name: str = name or ""
+
+    def serialize(self) -> dict:
+        return {
+            'id_tg': self.id_tg or '',
+            'photo': self.photo or '',
+            'gender': self.gender or '',
+            'name': self.name or ''
+        }
+
+    @staticmethod
+    def deserialize(payload: dict) -> 'StarProfile':
+        return StarProfile(
+            id_tg=payload.get('id_tg'),
+            photo=payload.get("photo"),
+            gender=payload.get("gander"),
+            name=payload.get("name")
+        )
 
 
 class Action:

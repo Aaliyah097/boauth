@@ -1,5 +1,6 @@
 from typing import Awaitable
 import os
+import json
 import base64
 from io import BytesIO
 from enum import Enum
@@ -11,6 +12,7 @@ from cryptography.fernet import Fernet
 from src.cache import RedisConnector
 from src.exceptions import UnknownError
 from src import vars
+from src.cache import RedisConnector
 
 
 cipher_suite = Fernet(os.environ.get("ENCRYPTION_KEY").encode())
@@ -22,15 +24,24 @@ class StartParamEnum(str, Enum):
 
 
 async def download_photo(link: str) -> bytes:
-    async with AsyncClient(verify=False) as client:
-        response = await client.get(
-            url=link
-        )
-        match response.status_code:
-            case 200:
-                return base64.b64encode(response.content)
-            case _:
-                UnknownError("Ой-ой...Что-то пошло не так 😰")
+    async with RedisConnector() as r_client:
+        res = await r_client.get(link)
+        if res:
+            return json.loads(res.decode('utf-8'))['link'].encode('utf-8')
+
+        async with AsyncClient(verify=False) as client:
+            response = await client.get(
+                url=link
+            )
+            match response.status_code:
+                case 200:
+                    photo = base64.b64encode(response.content)
+
+                    await r_client.set(link, json.dumps({'link': photo.decode('utf-8')}))
+
+                    return photo
+                case _:
+                    UnknownError("Ой-ой...Что-то пошло не так 😰")
 
 
 def normalize_k(k: int) -> int:
