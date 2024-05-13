@@ -11,22 +11,43 @@ class Account:
                  values: list,
                  vocabulary_category: int | None
                  ):
-        login_tg: str = login_tg
-        id_tg: str = id_tg
-        is_onboarded: bool = is_onboarded
-        birthday: str | None = birthday
-        values: list = values
-        vocabulary_category: int | None = vocabulary_category
+        self.login_tg: str = login_tg
+        self.id_tg: str = id_tg
+        self.is_onboarded: bool = is_onboarded
+        self.birthday: str | None = birthday
+        self.values: list = values or []
+        self.vocabulary_category: int | None = vocabulary_category
 
         self.partial_signup: bool = False
 
-        if bool(birthday) and bool(values):
+        if bool(self.birthday) and bool(self.values):
             self.partial_signup: bool = True
 
         self.full_signup: bool = False
 
-        if bool(birthday) and bool(values) and bool(vocabulary_category):
+        if bool(self.birthday) and bool(self.values) and bool(self.vocabulary_category):
             self.full_signup = True
+
+    def serilize(self) -> dict:
+        return {
+            'login_tg': self.login_tg or '',
+            'id_tg': self.id_tg or '',
+            'is_onboarded': self.is_onboarded or False,
+            'birthday': self.birthday or '',
+            'values': self.values or '',
+            'vocabulary_category': self.vocabulary_category or 0,
+        }
+
+    @staticmethod
+    def deserialize(payload: dict) -> 'Account':
+        return Account(
+            login_tg=payload.get('login_tg'),
+            id_tg=payload.get('id_tg'),
+            is_onboarded=payload.get('is_onboarded'),
+            birthday=payload.get('birthday'),
+            values=payload.get('values'),
+            vocabulary_category=payload.get('vocabulary_category'),
+        )
 
 
 class StarProfile:

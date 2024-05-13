@@ -1,3 +1,4 @@
+import json
 from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Message
@@ -9,12 +10,14 @@ from src.api_requests import (
 )
 from src import vars
 from src import buttons
+from src import models
 from src.utils import (
     verify_login,
     make_nonce,
     store_telegram_id,
 )
 from src import exceptions
+from src.cache import RedisConnector
 
 
 class AuthorizationMiddleware(BaseMiddleware):
@@ -37,10 +40,21 @@ class AuthorizationMiddleware(BaseMiddleware):
                         telegram_id).as_markup(resize_keyboard=True)
                 )
 
-            try:
-                account = await get_account(verify_login(username))
-            except exceptions.UserNotFoundError:
-                account = await signup_user(username, telegram_id)
+            username = str(verify_login(username))
+
+            async with RedisConnector() as client:
+                res = await client.get(username)
+                account = models.Account.deserialize(
+                    json.loads(res.decode('utf-8'))) if res else None
+
+                if not account:
+                    try:
+                        account = await get_account(verify_login(username))
+                    except exceptions.UserNotFoundError:
+                        account = await signup_user(username, telegram_id)
+
+                await client.set(username, json.dumps(account.serilize()))
+                await client.expire(username, 1*60*60)
 
             if not account.partial_signup:
                 builder = ReplyKeyboardBuilder()
