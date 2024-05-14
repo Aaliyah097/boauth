@@ -74,7 +74,7 @@ class StarProfile:
         return StarProfile(
             id_tg=payload.get('id_tg'),
             photo=payload.get("photo"),
-            gender=payload.get("gander"),
+            gender=payload.get("gender"),
             name=payload.get("name")
         )
 
