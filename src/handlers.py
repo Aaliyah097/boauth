@@ -55,7 +55,7 @@ async def check_health(msg: Message):
 
 
 @router.message(F.user_shared)
-@flags.signup_confirm_required()
+@flags.signup_confirm_required(cache=True)
 async def on_user_shared(message: Message):
     builder = buttons.Menu(message.from_user.id)
 
@@ -111,7 +111,7 @@ async def handle_select_friend_request(msg: Message):
 
 
 @router.message(Command("start"))
-@flags.signup_confirm_required()
+@flags.signup_confirm_required(cache=False)
 async def handle_start(msg: Message, command: CommandObject):
     if command.args:
         return await handle_auth(msg, command)
@@ -120,7 +120,7 @@ async def handle_start(msg: Message, command: CommandObject):
 
 
 @router.message(lambda message: message.text == vars.PRODUCTION_STATUS)
-@flags.signup_confirm_required()
+@flags.signup_confirm_required(cache=True)
 async def handle_production_status(message: Message):
     return await message.answer_photo(
         FSInputFile('static/prod_status.jpg'),
@@ -159,7 +159,7 @@ async def handle_famous_friend(message: Message):
 
 
 @router.message()
-@flags.signup_confirm_required()
+@flags.signup_confirm_required(cache=False)
 async def handle_message(msg: Message):
     if not msg.web_app_data:
         return await msg.answer(

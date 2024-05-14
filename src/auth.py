@@ -31,6 +31,8 @@ class AuthorizationMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         authorization = get_flag(data, "signup_confirm_required")
+        need_cache = authorization.get('cache', False)
+
         if authorization is not None:
             username, telegram_id = event.chat.username, event.chat.id
             if not username:
@@ -43,9 +45,12 @@ class AuthorizationMiddleware(BaseMiddleware):
             username = str(verify_login(username))
 
             async with RedisConnector() as client:
-                res = await client.get(username)
-                account = models.Account.deserialize(
-                    json.loads(res.decode('utf-8'))) if res else None
+                if need_cache:
+                    res = await client.get(username)
+                    account = models.Account.deserialize(
+                        json.loads(res.decode('utf-8'))) if res else None
+                else:
+                    account = None
 
                 if not account:
                     try:
@@ -53,8 +58,8 @@ class AuthorizationMiddleware(BaseMiddleware):
                     except exceptions.UserNotFoundError:
                         account = await signup_user(username, telegram_id)
 
-                await client.set(username, json.dumps(account.serilize()))
-                await client.expire(username, 1*60*60)
+                        await client.set(username, json.dumps(account.serilize()))
+                        await client.expire(username, 1*60*5)
 
             if not account.partial_signup:
                 builder = ReplyKeyboardBuilder()
