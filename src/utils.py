@@ -139,7 +139,7 @@ def make_nonce(strength: int = 6) -> str:
 async def store_telegram_id(nonce: str, telegram_id: str) -> str:
     async with RedisConnector() as connection:
         await connection.set(nonce, str(telegram_id))
-        await connection.expire(nonce, 15 * 60)
+        await connection.expire(nonce, 1 * 60 * 60)
         return str(nonce)
 
 

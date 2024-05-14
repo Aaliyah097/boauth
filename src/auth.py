@@ -58,8 +58,8 @@ class AuthorizationMiddleware(BaseMiddleware):
                     except exceptions.UserNotFoundError:
                         account = await signup_user(username, telegram_id)
 
-                        await client.set(username, json.dumps(account.serilize()))
-                        await client.expire(username, 1*60*5)
+                    await client.set(username, json.dumps(account.serilize()))
+                    await client.expire(username, 1*60*5)
 
             if not account.partial_signup:
                 builder = ReplyKeyboardBuilder()

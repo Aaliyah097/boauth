@@ -131,7 +131,7 @@ async def handle_production_status(message: Message):
 
 
 @router.message(lambda message: message.text == vars.FAMOUES_FRIEND_BUTTON)
-@flags.signup_confirm_required()
+@flags.signup_confirm_required(cache=True)
 async def handle_famous_friend(message: Message):
     builder = buttons.Menu(message.from_user.id)
 
