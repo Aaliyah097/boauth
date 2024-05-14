@@ -78,7 +78,7 @@ async def make_star_k_picture(k: int, star_photo: bytes) -> BytesIO:
             str(k).encode('utf-8')
         ).replace(
             b"{{picture}}",
-            star_photo
+            star_photo or b''
         )
 
         cairosvg.svg2png(
