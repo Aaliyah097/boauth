@@ -31,7 +31,8 @@ class AuthorizationMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         authorization = get_flag(data, "signup_confirm_required")
-        need_cache = authorization.get('cache', False)
+        need_cache = authorization.get(
+            'cache', False) if authorization else False
 
         if authorization is not None:
             username, telegram_id = event.chat.username, event.chat.id
