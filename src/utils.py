@@ -1,3 +1,4 @@
+import time
 from typing import Awaitable
 import os
 import json
@@ -13,9 +14,14 @@ from src.cache import RedisConnector
 from src.exceptions import UnknownError
 from src import vars
 from src.cache import RedisConnector
+from src.models import StarProfile
 
 
 cipher_suite = Fernet(os.environ.get("ENCRYPTION_KEY").encode())
+ZVEZDA_PICTURE = None
+RAT_49 = None
+RAT_75 = None
+RAT_100 = None
 
 
 class StartParamEnum(str, Enum):
@@ -29,19 +35,15 @@ async def download_photo(link: str) -> bytes:
         if res:
             return json.loads(res.decode('utf-8'))['link'].encode('utf-8')
 
-        async with AsyncClient(verify=False) as client:
-            response = await client.get(
-                url=link
-            )
-            match response.status_code:
-                case 200:
-                    photo = base64.b64encode(response.content)
-
-                    await r_client.set(link, json.dumps({'link': photo.decode('utf-8')}))
-
-                    return photo
-                case _:
-                    UnknownError("Ой-ой...Что-то пошло не так 😰")
+    async with AsyncClient(verify=False) as client:
+        response = await client.get(
+            url=link
+        )
+        match response.status_code:
+            case 200:
+                return base64.b64encode(response.content)
+            case _:
+                UnknownError("Ой-ой...Что-то пошло не так 😰")
 
 
 def normalize_k(k: int) -> int:
@@ -68,50 +70,78 @@ def get_id_number(telegram_id: int) -> int:
     return (telegram_id % (10 - 3 + 1)) + 3
 
 
-async def make_star_k_picture(k: int, star_photo: bytes) -> BytesIO:
-    k, png_output = normalize_k(k), BytesIO()
+async def make_star_k_picture(k: int, star: StarProfile) -> BytesIO:
+    global ZVEZDA_PICTURE
+    if not ZVEZDA_PICTURE:
+        async with aiofiles.open('static/zvezda.svg', 'rb') as file:
+            ZVEZDA_PICTURE = await file.read()
 
-    async with aiofiles.open('static/zvezda.svg', 'rb') as file:
-        svg_content = await file.read()
-        svg_content = svg_content.replace(
-            b"{{percent}}",
-            str(k).encode('utf-8')
-        ).replace(
-            b"{{picture}}",
-            star_photo or b''
-        )
+    k, png_output, key, star_photo = (
+        normalize_k(k),
+        BytesIO(),
+        f'star_{str(k)}_{str(star.id_tg)}',
+        await download_photo(star.photo)
+    )
 
-        cairosvg.svg2png(
-            bytestring=svg_content,
-            write_to=png_output,
-            background_color='black'
-        )
+    async with RedisConnector() as client:
+        content = await client.get(key)
+        if content:
+            png_output = BytesIO(content)
+        else:
+            cairosvg.svg2png(
+                bytestring=ZVEZDA_PICTURE.replace(
+                    b"{{percent}}",
+                    str(k).encode('utf-8')
+                ).replace(
+                    b"{{picture}}",
+                    star_photo or b''
+                ),
+                write_to=png_output,
+                background_color='black'
+            )
 
     png_output.seek(0)
+
     return png_output
 
 
 async def make_friend_k_picture(k: int) -> BytesIO:
-    k, png_output = normalize_k(k), BytesIO()
+    global RAT_100, RAT_75, RAT_49
+
+    k, png_output, svg_content, key = (
+        normalize_k(k),
+        BytesIO(),
+        b'',
+        f"friend_{str(k)}"
+    )
+
     if k < 50:
-        picture_name = 'updated_0_49.svg'  # TODO
+        if not RAT_49:
+            async with aiofiles.open(f'static/updated_0_49.svg', 'rb') as file:
+                RAT_49 = await file.read()
+        svg_content = RAT_49
     elif k < 75:
-        picture_name = 'updated_50_74.svg'  # TODO
+        if not RAT_75:
+            async with aiofiles.open(f'static/updated_50_74.svg', 'rb') as file:
+                RAT_75 = await file.read()
+        svg_content = RAT_75
     else:
-        picture_name = 'updated_75_100.svg'
+        if not RAT_100:
+            async with aiofiles.open(f'static/updated_75_100.svg', 'rb') as file:
+                RAT_100 = await file.read()
+        svg_content = RAT_100
 
-    async with aiofiles.open(f'static/{picture_name}', 'rb') as file:
-        svg_content = await file.read()
-        svg_content = svg_content.replace(
-            b"{{percent}}",
-            str(k).encode('utf-8')
-        )
-
-        cairosvg.svg2png(
-            bytestring=svg_content,
-            write_to=png_output,
-            background_color='black'
-        )
+    async with RedisConnector() as client:
+        content = await client.get(key)
+        if content:
+            png_output = BytesIO(content)
+        else:
+            cairosvg.svg2png(
+                bytestring=svg_content.replace(
+                    b"{{percent}}", str(k).encode('utf-8')),
+                write_to=png_output,
+                background_color='black'
+            )
 
     png_output.seek(0)
     return png_output

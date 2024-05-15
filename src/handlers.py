@@ -142,7 +142,7 @@ async def handle_famous_friend(message: Message):
 
     file = await make_star_k_picture(
         await calc_friendship_k(message.from_user.id, star.id_tg),
-        await download_photo(star.photo)
+        star
     )
     file.seek(0)
 

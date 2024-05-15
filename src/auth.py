@@ -58,6 +58,8 @@ class AuthorizationMiddleware(BaseMiddleware):
                         account = await get_account(verify_login(username))
                     except exceptions.UserNotFoundError:
                         account = await signup_user(username, telegram_id)
+                    except UnknownError as e:
+                        return await event.answer(str(e))
 
                     await client.set(username, json.dumps(account.serilize()))
                     await client.expire(username, 1*60*5)

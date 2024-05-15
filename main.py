@@ -8,6 +8,8 @@ from aiogram.dispatcher.flags import get_flag
 from src.handlers import router
 from src.auth import AuthorizationMiddleware
 from src.cache import RedisConnector
+from src import preload
+
 
 load_dotenv('.env')
 
@@ -25,6 +27,12 @@ async def main():
 
     try:
         await RedisConnector.connect()
+
+        await preload.preload_stars()
+        await preload.preload_stars_photos()
+        await preload.preload_stars_k_results()
+        await preload.preload_friends_k_results()
+
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     finally:
         await RedisConnector.disconnect()

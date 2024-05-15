@@ -4,7 +4,7 @@ import random
 from copy import copy
 from string import ascii_letters
 from dotenv import load_dotenv
-from httpx import AsyncClient
+from httpx import AsyncClient, ReadTimeout
 from src.utils import encrypt_api_key
 from src.exceptions import UserNotFoundError, SignupFailedException, UnknownError
 from src.models import Account, StarProfile
@@ -21,10 +21,13 @@ headers = {
 
 async def get_account(telegram_login: str) -> Account:
     async with AsyncClient(base_url=host, verify=False) as client:
-        response = await client.get(
-            f"/api/accounts/?telegram={telegram_login}",
-            headers=headers
-        )
+        try:
+            response = await client.get(
+                f"/api/accounts/?telegram={telegram_login}",
+                headers=headers
+            )
+        except ReadTimeout:
+            raise UnknownError("Высокая нагрузка...😰 Попробуй еще раз")
         if response.status_code != 200:
             response.raise_for_status()
         response = response.json()
@@ -66,15 +69,18 @@ async def signup_user(tg_username: str, tg_id: str) -> Account:
         tg_username = "@" + tg_username
 
     async with AsyncClient(base_url=host, verify=False) as client:
-        response = await client.post(
-            "/api/accounts/register/",
-            headers=h,
-            data={
-                "login_tg": tg_username,
-                'id_tg': tg_id,
-                'password': "".join([random.choice(ascii_letters) for _ in range(8)])
-            }
-        )
+        try:
+            response = await client.post(
+                "/api/accounts/register/",
+                headers=h,
+                data={
+                    "login_tg": tg_username,
+                    'id_tg': tg_id,
+                    'password': "".join([random.choice(ascii_letters) for _ in range(8)])
+                }
+            )
+        except ReadTimeout:
+            raise UnknownError("Высокая нагрузка...😰 Попробуй еще раз")
         if response.status_code != 201:
             raise SignupFailedException(response.text)
 
@@ -90,10 +96,13 @@ async def signup_user(tg_username: str, tg_id: str) -> Account:
 
 async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> int:
     async with AsyncClient(base_url=host, verify=False) as client:
-        response = await client.post(
-            url=f'/api/accounts/friendship-coef/?tg1={str(telegram_id_user)}&tg2={str(telegram_id_friend)}',
-            headers=headers,
-        )
+        try:
+            response = await client.post(
+                url=f'/api/accounts/friendship-coef/?tg1={str(telegram_id_user)}&tg2={str(telegram_id_friend)}',
+                headers=headers,
+            )
+        except ReadTimeout:
+            raise UnknownError("Высокая нагрузка...😰 Попробуй еще раз")
         match response.status_code:
             case 404:
                 raise UserNotFoundError()
@@ -104,30 +113,28 @@ async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> i
 
 
 async def get_stars_accounts() -> list[StarProfile]:
-    async with RedisConnector() as r_client:
-        res = await r_client.get("stars")
+    async with RedisConnector() as r:
+        res = await r.get("stars")
         if res:
             return [StarProfile.deserialize(s) for s in json.loads(res.decode("utf-8"))['stars']]
 
-        async with AsyncClient(base_url=host, verify=False) as client:
-            response = await client.get(
-                url='/api/accounts/?is_star=true',
-                headers=headers
-            )
-            match response.status_code:
-                case 200:
-                    stars = [
-                        StarProfile(
-                            name=d['name'],
-                            gender=d['gender'],
-                            photo=d['photo'],
-                            id_tg=d['id_tg']
-                        )
-                        for d in response.json()
-                    ]
+    async with AsyncClient(base_url=host, verify=False) as client:
+        response = await client.get(
+            url='/api/accounts/?is_star=true',
+            headers=headers
+        )
+        match response.status_code:
+            case 200:
+                stars = [
+                    StarProfile(
+                        name=d['name'],
+                        gender=d['gender'],
+                        photo=d['photo'],
+                        id_tg=d['id_tg']
+                    )
+                    for d in response.json()
+                ]
 
-                    await r_client.set("stars", json.dumps({"stars": [s.serialize() for s in stars]}))
-
-                    return stars
-                case _:
-                    raise UnknownError("Ой-ой...Что-то пошло не так 😰")
+                return stars
+            case _:
+                raise UnknownError("Ой-ой...Что-то пошло не так 😰")
