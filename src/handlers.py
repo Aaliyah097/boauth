@@ -70,8 +70,11 @@ async def on_user_shared(message: Message):
             caption=vars.USER_NOT_FOUND,
             reply_markup=builder.as_markup(resize_keyboard=True)
         )
+    try:
+        file = await make_friend_k_picture(k)
+    except UnknownError as e:
+        return await message.answer(str(e))
 
-    file = await make_friend_k_picture(k)
     file.seek(0)
     await message.answer_photo(
         BufferedInputFile(
@@ -140,10 +143,13 @@ async def handle_famous_friend(message: Message):
     except IndexError:
         return await message.answer(text=vars.NO_FAMOUS_FRIENDS_FOUND)
 
-    file = await make_star_k_picture(
-        await calc_friendship_k(message.from_user.id, star.id_tg),
-        star
-    )
+    try:
+        file = await make_star_k_picture(
+            await calc_friendship_k(message.from_user.id, star.id_tg),
+            star
+        )
+    except UnknownError as e:
+        return await message.answer(str(e))
     file.seek(0)
 
     await message.answer_photo(
