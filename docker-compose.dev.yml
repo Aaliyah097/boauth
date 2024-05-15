@@ -3,7 +3,10 @@ services:
   redis:
     image: redis:alpine
     container_name: redis-auth
-    command: redis-server --port 6379 --requirepass ${redis_password:-change}
+    command: redis-server /usr/local/etc/redis/redis.conf --port 6379 --requirepass ${redis_password:-change}
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis_data:/data
     ports:
       - "6379:6379"
     networks:
@@ -11,3 +14,6 @@ services:
 networks:
   local_network:
     driver: bridge
+volumes:
+  redis_data:
+    driver: local

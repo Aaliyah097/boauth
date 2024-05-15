@@ -28,10 +28,25 @@ async def main():
     try:
         await RedisConnector.connect()
 
-        await preload.preload_stars()
-        await preload.preload_stars_photos()
-        await preload.preload_stars_k_results()
-        await preload.preload_friends_k_results()
+        try:
+            await preload.preload_stars()
+        except Exception as e:
+            pass
+
+        # try:
+        #     await preload.preload_stars_photos()
+        # except Exception as e:
+        #     pass
+
+        # try:
+        #     await preload.preload_stars_k_results()
+        # except Exception as e:
+        #     pass
+
+        # try:
+        #     await preload.preload_friends_k_results()
+        # except Exception as e:
+        #     pass
 
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     finally:
