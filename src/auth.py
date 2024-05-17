@@ -33,6 +33,8 @@ class AuthorizationMiddleware(BaseMiddleware):
         authorization = get_flag(data, "signup_confirm_required")
         need_cache = authorization.get(
             'cache', False) if authorization else False
+        from_app = authorization.get(
+            'from_app', False) if authorization else False
 
         if authorization is not None:
             username, telegram_id = event.chat.username, event.chat.id
@@ -63,6 +65,9 @@ class AuthorizationMiddleware(BaseMiddleware):
 
                     await client.set(username, json.dumps(account.serilize()))
                     await client.expire(username, 1*60*5)
+
+            if len(str(event.text).split(" ")) > 1:
+                return await handler(event, data)
 
             if not account.partial_signup:
                 builder = ReplyKeyboardBuilder()
