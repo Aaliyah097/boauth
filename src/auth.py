@@ -18,6 +18,7 @@ from src.utils import (
 )
 from src import exceptions
 from src.cache import RedisConnector
+from src.exceptions import UnknownError
 
 
 class AuthorizationMiddleware(BaseMiddleware):
