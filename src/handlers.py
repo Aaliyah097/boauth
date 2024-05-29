@@ -1,4 +1,5 @@
 # t.me/regbo_bot
+import re
 import os
 import random
 from enum import Enum
@@ -30,7 +31,8 @@ from src.utils import (
     download_photo,
     make_star_k_picture,
     get_id_number,
-    get_k_message
+    get_k_message,
+    clean_telegram_id
 )
 from src.api_requests import (
     get_account,
@@ -173,6 +175,10 @@ async def handle_message(msg: Message):
             reply_markup=buttons.Menu(
                 msg.from_user.id).as_markup(resize_keyboard=True)
         )
+
+    result = ''.join(re.findall(r'\d+', str(msg.web_app_data.data)))
+    if result:
+        await clean_telegram_id(result)
 
     builder = ReplyKeyboardBuilder()
     builder.row(buttons.SelectFriendButton(msg.from_user.id))

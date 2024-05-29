@@ -161,7 +161,7 @@ def verify_login(login: str) -> str:
     return login
 
 
-def make_nonce(strength: int = 6) -> str:
+def make_nonce(strength: int = 8) -> str:
     digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
     return "".join(str(random.choice(digits)) for _ in range(strength))
 
@@ -169,8 +169,13 @@ def make_nonce(strength: int = 6) -> str:
 async def store_telegram_id(nonce: str, telegram_id: str) -> str:
     async with RedisConnector() as connection:
         await connection.set(nonce, str(telegram_id))
-        await connection.expire(nonce, 1 * 60 * 60)
+        await connection.expire(nonce, 1 * 60 * 60 * 24 * 7)
         return str(nonce)
+
+
+async def clean_telegram_id(nonce: str) -> str:
+    async with RedisConnector() as connection:
+        await connection.delete(nonce)
 
 
 def is_valid_url(url: str) -> bool:
