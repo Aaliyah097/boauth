@@ -6,7 +6,7 @@ from string import ascii_letters
 from dotenv import load_dotenv
 from httpx import AsyncClient, ReadTimeout
 from src.utils import encrypt_api_key
-from src.exceptions import UserNotFoundError, SignupFailedException, UnknownError, UserNotFoundError
+from src.exceptions import UserNotFoundError, SignupFailedException, UnknownError
 from src.models import Account, StarProfile
 from src.cache import RedisConnector
 
