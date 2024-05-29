@@ -74,7 +74,7 @@ async def on_user_shared(message: Message):
         )
     try:
         file = await make_friend_k_picture(k)
-    except UnknownError as e:
+    except exceptions.UnknownError as e:
         return await message.answer(str(e))
 
     file.seek(0)
@@ -150,7 +150,7 @@ async def handle_famous_friend(message: Message):
             await calc_friendship_k(message.from_user.id, star.id_tg),
             star
         )
-    except UnknownError as e:
+    except exceptions.UnknownError as e:
         return await message.answer(str(e))
     file.seek(0)
 
