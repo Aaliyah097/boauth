@@ -89,7 +89,7 @@ async def on_user_shared(message: Message):
 
 
 async def handle_auth(msg: Message, command: CommandObject):
-    nonce = await store_telegram_id(make_nonce(), msg.from_user.id)
+    nonce = await store_telegram_id(make_nonce(6), msg.from_user.id)
 
     if command.args == 'mobile':
         redirect_url = os.environ.get("MOBILE_REDIRECT_URI", "%s") % nonce

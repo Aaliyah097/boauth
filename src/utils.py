@@ -161,7 +161,7 @@ def verify_login(login: str) -> str:
     return login
 
 
-def make_nonce(strength: int = 8) -> str:
+def make_nonce(strength: int = 6) -> str:
     digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
     return "".join(str(random.choice(digits)) for _ in range(strength))
 

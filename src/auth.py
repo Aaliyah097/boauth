@@ -72,11 +72,10 @@ class AuthorizationMiddleware(BaseMiddleware):
 
             if not account.partial_signup:
                 builder = ReplyKeyboardBuilder()
-                builder.row(buttons.SignupFinishButton(await store_telegram_id(make_nonce(), telegram_id)))
+                builder.row(buttons.SignupFinishButton(await store_telegram_id(make_nonce(16), telegram_id)))
                 return await event.answer(
                     vars.ONBOARDING_REQUIRED,
                     reply_markup=builder.as_markup(resize_keyboard=True),
-
                 )
 
         return await handler(event, data)
