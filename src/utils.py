@@ -67,7 +67,8 @@ def get_k_message(k: int) -> str:
 
 
 def get_id_number(telegram_id: int) -> int:
-    return (telegram_id % (10 - 3 + 1)) + 3
+    min_value, max_value, hash_value = 5, 10, hash(telegram_id)
+    return (min_value + (hash_value % (max_value - min_value + 1)))
 
 
 async def make_star_k_picture(k: int, star: StarProfile) -> BytesIO:
@@ -117,17 +118,17 @@ async def make_friend_k_picture(k: int) -> BytesIO:
 
     if k < 50:
         if not RAT_49:
-            async with aiofiles.open(f'static/updated_0_49.svg', 'rb') as file:
+            async with aiofiles.open(f'static/0-49.svg', 'rb') as file:
                 RAT_49 = await file.read()
         svg_content = RAT_49
     elif k < 75:
         if not RAT_75:
-            async with aiofiles.open(f'static/updated_50_74.svg', 'rb') as file:
+            async with aiofiles.open(f'static/50-74.svg', 'rb') as file:
                 RAT_75 = await file.read()
         svg_content = RAT_75
     else:
         if not RAT_100:
-            async with aiofiles.open(f'static/updated_75_100.svg', 'rb') as file:
+            async with aiofiles.open(f'static/75-100.svg', 'rb') as file:
                 RAT_100 = await file.read()
         svg_content = RAT_100
 
