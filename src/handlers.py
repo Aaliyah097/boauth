@@ -105,6 +105,7 @@ async def handle_auth(msg: Message, command: CommandObject):
     )
 
 
+@flags.signup_confirm_required()
 async def handle_select_friend_request(msg: Message):
     builder = ReplyKeyboardBuilder()
     builder.row(buttons.SelectFriendButton(msg.from_user.id))
