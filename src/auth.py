@@ -19,6 +19,7 @@ from src.utils import (
 from src import exceptions
 from src.cache import RedisConnector
 from src.exceptions import UnknownError
+import aiogram.exceptions
 
 
 class AuthorizationMiddleware(BaseMiddleware):
@@ -30,6 +31,16 @@ class AuthorizationMiddleware(BaseMiddleware):
     ) -> Any:
         if not isinstance(event, Message):
             return await handler(event, data)
+
+        admin_required = get_flag(data, "admin_required")
+        if admin_required is not None:
+            if str(event.from_user.id) == '414308039':
+                return await handler(event, data)
+            else:
+                return
+
+        if not event.chat.id in ['private', 'sender']:
+            return
 
         authorization = get_flag(data, "signup_confirm_required")
         if authorization is None:

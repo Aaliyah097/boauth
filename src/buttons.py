@@ -49,3 +49,14 @@ def Menu(telegram_id) -> ReplyKeyboardBuilder:
         builder.row(button)
 
     return builder
+
+
+def GroupMenu() -> ReplyKeyboardBuilder:
+    buttons_pack = [
+        ProductionButton()
+    ]
+    builder = ReplyKeyboardBuilder()
+    for button in buttons_pack:
+        builder.row(button)
+
+    return builder

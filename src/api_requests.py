@@ -138,3 +138,16 @@ async def get_stars_accounts() -> list[StarProfile]:
                 return stars
             case _:
                 raise UnknownError("Ой-ой...Что-то пошло не так 😰")
+
+
+async def list_users() -> list[str]:
+    async with AsyncClient(base_url=host, verify=False) as client:
+        response = await client.get(
+            url='/api/accounts/?is_star=false',
+            headers=headers
+        )
+        match response.status_code:
+            case 200:
+                return response.json()
+            case _:
+                raise UnknownError("Ой-ой...Что-то пошло не так 😰")

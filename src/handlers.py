@@ -39,12 +39,14 @@ from src.api_requests import (
     activate_account,
     signup_user,
     calc_friendship_k,
-    get_stars_accounts
+    get_stars_accounts,
+    list_users
 )
 from src import exceptions
 from src import vars
 from src import models
 from src import buttons
+from bot import bot
 
 
 load_dotenv(".env")
@@ -123,6 +125,12 @@ async def handle_start(msg: Message, command: CommandObject):
         return await handle_auth(msg, command)
 
     await handle_select_friend_request(msg)
+
+
+@router.message(Command("id"))
+@flags.admin_required()
+async def handle_id(msg: Message, command: CommandObject):
+    return await msg.answer(str(msg.from_user.id))
 
 
 @router.message(lambda message: message.text == vars.PRODUCTION_STATUS)
