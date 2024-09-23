@@ -23,10 +23,52 @@ RAT_49 = None
 RAT_75 = None
 RAT_100 = None
 
+USER_CHECKS_KEY = "user_%s_checks"
+CHECKS_FOR_REWARD = int(os.environ.get("CHECKS_FOR_REWARD", 5))
+
 
 class StartParamEnum(str, Enum):
     mobile = "mobile"
     web = "web"
+
+
+def get_checks_message(checks_left: int) -> str:
+    checks_map = {
+        5: '5️⃣',
+        4: '4️⃣',
+        3: '3️⃣',
+        2: '2️⃣',
+        1: '1️⃣'
+    }
+
+    if checks_left > CHECKS_FOR_REWARD:
+        checks_left = CHECKS_FOR_REWARD
+
+    if checks_left not in checks_map:
+        return vars.NO_CHECKS_LEFT
+    elif checks_left == 2:
+        return vars.CHECKS_FOR_REWARD_2
+    elif checks_left == 1:
+        return vars.CHECKS_FOR_REWARD_1
+    else:
+        return vars.CHECKS_FOR_REWARD % checks_map[checks_left]
+
+
+async def get_checks_left_for_reward(user_id: str) -> int:
+    user_id = str(user_id)
+
+    async with RedisConnector() as connection:
+        current_checks = await connection.scard(USER_CHECKS_KEY % str(user_id))
+        return max(CHECKS_FOR_REWARD - current_checks, 0)
+
+
+async def add_user_check_for_reward(user_id: str, friend_id: str) -> int:
+    user_id, friend_id = str(user_id), str(friend_id)
+
+    async with RedisConnector() as connection:
+        await connection.sadd(USER_CHECKS_KEY % str(user_id), friend_id)
+
+    return await get_checks_left_for_reward(user_id)
 
 
 async def download_photo(link: str) -> bytes:

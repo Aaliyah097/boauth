@@ -32,7 +32,10 @@ from src.utils import (
     make_star_k_picture,
     get_id_number,
     get_k_message,
-    clean_telegram_id
+    clean_telegram_id,
+    get_checks_left_for_reward,
+    add_user_check_for_reward,
+    get_checks_message
 )
 from src.api_requests import (
     get_account,
@@ -80,12 +83,18 @@ async def on_user_shared(message: Message):
         return await message.answer(str(e))
 
     file.seek(0)
+
+    checks_for_reward = await add_user_check_for_reward(
+        message.from_user.id, message.user_shared.user_id
+    )
+
     await message.answer_photo(
         BufferedInputFile(
             file.read(),
             f'{message.user_shared.request_id}_{message.user_shared.user_id}_k.png'
         ),
-        caption=get_k_message(k) % str(get_id_number(message.from_user.id)),
+        caption=get_k_message(k) % str(get_id_number(
+            message.from_user.id)) + get_checks_message(checks_for_reward),
         reply_markup=builder.as_markup(resize_keyboard=True)
     )
 

@@ -39,8 +39,8 @@ class AuthorizationMiddleware(BaseMiddleware):
             else:
                 return
 
-        if not event.chat.id in ['private', 'sender']:
-            return
+        # if not event.chat.id in ['private', 'sender']:
+        #     return
 
         authorization = get_flag(data, "signup_confirm_required")
         if authorization is None:

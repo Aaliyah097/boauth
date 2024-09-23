@@ -18,8 +18,9 @@ async def calc_members():
                 chat_id=os.environ.get("CHANNEL_ID"),
                 user_id=int(user['id_tg'] or 0)
             )
-            members += 1
-        except aiogram.exceptions.TelegramBadRequest:
+            if member.status == 'member':
+                members += 1
+        except aiogram.exceptions.TelegramBadRequest as e:
             pass
 
     async with aiofiles.open(f"{os.environ.get('CHANNEL_ID')}.json", mode='wb') as f:

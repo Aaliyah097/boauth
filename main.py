@@ -23,21 +23,23 @@ async def main():
     dp.message.middleware(AuthorizationMiddleware())
     dp.include_router(router)
 
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(schedule.calc_members, IntervalTrigger(seconds=3600))
-    scheduler.start()
+    # scheduler = AsyncIOScheduler()
+    # scheduler.add_job(schedule.calc_members, IntervalTrigger(seconds=3600))
+    # scheduler.start()
+
+    # await schedule.calc_members()
 
     await bot.delete_webhook(drop_pending_updates=True)
 
     try:
         await RedisConnector.connect()
 
-        await asyncio.gather(
-            preload.preload_stars(),
-            preload.preload_stars_photos(),
-            preload.preload_stars_k_results(),
-            preload.preload_friends_k_results()
-        )
+        # await asyncio.gather(
+        #     preload.preload_stars(),
+        #     preload.preload_stars_photos(),
+        #     preload.preload_stars_k_results(),
+        #     preload.preload_friends_k_results()
+        # )
 
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     finally:
