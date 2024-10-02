@@ -172,7 +172,7 @@ async def handle_famous_friend(message: Message):
 
     try:
         file = await make_star_k_picture(
-            await (calc_friendship_k(message.from_user.id, star.id_tg))[0],
+            (await calc_friendship_k(message.from_user.id, star.id_tg))[0],
             star
         )
     except exceptions.UnknownError as e:

@@ -41,15 +41,16 @@ def get_checks_message(checks_left: int, has_changed: bool = True) -> str:
         1: '1️⃣'
     }
 
-    if not has_changed:
-        return vars.SAME_CHECKS_FOR_REWARD % checks_map[checks_left]
-
     if checks_left > CHECKS_FOR_REWARD:
         checks_left = CHECKS_FOR_REWARD
 
     if checks_left not in checks_map:
         return vars.NO_CHECKS_LEFT
-    elif checks_left == 2:
+
+    if not has_changed:
+        return vars.SAME_CHECKS_FOR_REWARD % checks_map[checks_left]
+
+    if checks_left == 2:
         return vars.CHECKS_FOR_REWARD_2
     elif checks_left == 1:
         return vars.CHECKS_FOR_REWARD_1
