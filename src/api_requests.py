@@ -94,7 +94,7 @@ async def signup_user(tg_username: str, tg_id: str) -> Account:
     )
 
 
-async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> int:
+async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> tuple[int, bool]:
     async with AsyncClient(base_url=host, verify=False) as client:
         try:
             response = await client.post(
@@ -107,7 +107,8 @@ async def calc_friendship_k(telegram_id_user: int, telegram_id_friend: int) -> i
             case 404:
                 raise UserNotFoundError()
             case 200:
-                return int(response.json()['coef'])
+                response = response.json()
+                return int(response['coef']), bool(response['created'])
             case _:
                 raise UnknownError("Ой-ой...Что-то пошло не так 😰")
 

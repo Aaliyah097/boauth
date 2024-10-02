@@ -67,8 +67,8 @@ async def on_user_shared(message: Message):
     builder = buttons.Menu(message.from_user.id)
 
     try:
-        k = await calc_friendship_k(message.from_user.id,
-                                    message.user_shared.user_id)
+        k, is_new = await calc_friendship_k(message.from_user.id,
+                                            message.user_shared.user_id)
     except exceptions.UnknownError as e:
         return await message.answer(text=str(e))
     except exceptions.UserNotFoundError:
@@ -84,9 +84,16 @@ async def on_user_shared(message: Message):
 
     file.seek(0)
 
-    checks_for_reward = await add_user_check_for_reward(
-        message.from_user.id, message.user_shared.user_id
-    )
+    if is_new:
+        checks_for_reward = await add_user_check_for_reward(
+            message.from_user.id, message.user_shared.user_id
+        )
+        checks_message = get_checks_message(
+            checks_for_reward, has_changed=True)
+    else:
+        checks_for_reward = await get_checks_left_for_reward(message.from_user.id)
+        checks_message = get_checks_message(
+            checks_for_reward, has_changed=False)
 
     await message.answer_photo(
         BufferedInputFile(
@@ -94,7 +101,7 @@ async def on_user_shared(message: Message):
             f'{message.user_shared.request_id}_{message.user_shared.user_id}_k.png'
         ),
         caption=get_k_message(k) % str(get_id_number(
-            message.from_user.id)) + get_checks_message(checks_for_reward),
+            message.from_user.id)) + checks_message,
         reply_markup=builder.as_markup(resize_keyboard=True)
     )
 
@@ -165,7 +172,7 @@ async def handle_famous_friend(message: Message):
 
     try:
         file = await make_star_k_picture(
-            await calc_friendship_k(message.from_user.id, star.id_tg),
+            await (calc_friendship_k(message.from_user.id, star.id_tg))[0],
             star
         )
     except exceptions.UnknownError as e:

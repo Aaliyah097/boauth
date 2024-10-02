@@ -32,7 +32,7 @@ class StartParamEnum(str, Enum):
     web = "web"
 
 
-def get_checks_message(checks_left: int) -> str:
+def get_checks_message(checks_left: int, has_changed: bool = True) -> str:
     checks_map = {
         5: '5️⃣',
         4: '4️⃣',
@@ -40,6 +40,9 @@ def get_checks_message(checks_left: int) -> str:
         2: '2️⃣',
         1: '1️⃣'
     }
+
+    if not has_changed:
+        return vars.SAME_CHECKS_FOR_REWARD % checks_map[checks_left]
 
     if checks_left > CHECKS_FOR_REWARD:
         checks_left = CHECKS_FOR_REWARD
