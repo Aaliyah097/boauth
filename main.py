@@ -24,9 +24,9 @@ async def start_web_server():
     app.router.add_post("/auth/", handle_apple_id)
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 8080)
+    site = web.TCPSite(runner, "0.0.0.0", 8123)
     await site.start()
-    print("Web server started on http://0.0.0.0:8080")
+    print("Web server started on http://0.0.0.0:8123")
 
 
 async def main():
