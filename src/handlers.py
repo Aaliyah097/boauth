@@ -1,4 +1,6 @@
 # t.me/regbo_bot
+from aiohttp import web
+import json
 import re
 import os
 import random
@@ -50,10 +52,24 @@ from src import vars
 from src import models
 from src import buttons
 from bot import bot
+from src.auth import login_or_signup
 
 
 load_dotenv(".env")
 router = Router()
+
+
+async def handle_apple_id(request):
+    try:
+        data = await request.json()
+        apple_id = str(data['apple_id'])
+
+        await login_or_signup(apple_id, apple_id)
+        nonce = await store_telegram_id(make_nonce(6), apple_id)
+
+        return web.json_response({"nonce": nonce})
+    except json.JSONDecodeError:
+        return web.json_response({"error": "Нужен JSON с полем 'apple_id'"}, status=400)
 
 
 @router.message(Command("health"))

@@ -19,7 +19,15 @@ from src.utils import (
 from src import exceptions
 from src.cache import RedisConnector
 from src.exceptions import UnknownError
+from src.models import Account
 import aiogram.exceptions
+
+
+async def login_or_signup(username: str, telegram_id: int) -> Account:
+    try:
+        return await get_account(verify_login(username))
+    except exceptions.UserNotFoundError:
+        return await signup_user(username, telegram_id)
 
 
 class AuthorizationMiddleware(BaseMiddleware):
@@ -57,9 +65,7 @@ class AuthorizationMiddleware(BaseMiddleware):
         username = str(verify_login(username))
 
         try:
-            account = await get_account(verify_login(username))
-        except exceptions.UserNotFoundError:
-            account = await signup_user(username, telegram_id)
+            account = await login_or_signup(username, telegram_id)
         except UnknownError as e:
             return await event.answer(str(e))
 
