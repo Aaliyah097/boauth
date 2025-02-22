@@ -77,25 +77,24 @@ spec:
             """
           }
         }
-        // stage('Deploy to Kubernetes') {
-        //   steps {
-        //     script{
-        //       def targetNamespace = ''
-        //       if (env.BRANCH_NAME == 'develop') {
-        //           targetNamespace = 'dev'
-        //       } else if (env.BRANCH_NAME == 'main') {
-        //           targetNamespace = 'prod'
-        //       } else {
-        //           error "Unsupported branch: ${env.BRANCH_NAME}"
-        //       }
-        //       echo "Deploying to namespace: ${targetNamespace}"
+        stage('Deploy to Kubernetes') {
+          steps {
+            script{
+              def targetNamespace = ''
+              if (env.BRANCH_NAME == 'develop') {
+                  targetNamespace = 'dev'
+              } else if (env.BRANCH_NAME == 'main') {
+                  targetNamespace = 'prod'
+              } else {
+                  error "Unsupported branch: ${env.BRANCH_NAME}"
+              }
+              echo "Deploying to namespace: ${targetNamespace}"
 
-        //       container('kubectl') {
-        //         sh "kubectl apply -f ci-cd/deployment.yaml -n ${targetNamespace}"
-        //         sh "kubectl apply -f ci-cd/service.yaml -n ${targetNamespace}"
-        //       }
-        //     }
-        //   }
-        // }
+              container('kubectl') {
+                sh "kubectl apply -f ci-cd/deployment.yaml -n ${targetNamespace}"
+              }
+            }
+          }
+        }
     }
 }
