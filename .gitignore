@@ -5,7 +5,6 @@
 __pycache__
 media
 archive
-static
 !main/static
 
 localhost+2-key.pem
