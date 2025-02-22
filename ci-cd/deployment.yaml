@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: boauth
+  labels:
+    app: boauth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: boauth
+  template:
+    metadata:
+      labels:
+        app: boauth
+    spec:
+      containers:
+        - name: boauth
+          image: aaliyah097/boauth:latest
+          envFrom:
+            - secretRef:
+                name: boauth

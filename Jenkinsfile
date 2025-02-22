@@ -69,14 +69,14 @@ spec:
             }
           }
         }
-        // stage('Update Deployment Manifest') {
-        //   steps {
-        //     // Обновляем манифест, подставляя новый тег
-        //     sh """
-        //         sed -i 's|image: .*|image: ${IMAGE_NAME}:${IMAGE_TAG}|' ci-cd/deployment.yaml
-        //     """
-        //   }
-        // }
+        stage('Update Deployment Manifest') {
+          steps {
+            // Обновляем манифест, подставляя новый тег
+            sh """
+                sed -i 's|image: .*|image: ${IMAGE_NAME}:${IMAGE_TAG}|' ci-cd/deployment.yaml
+            """
+          }
+        }
         // stage('Deploy to Kubernetes') {
         //   steps {
         //     script{
