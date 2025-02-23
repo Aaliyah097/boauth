@@ -10,5 +10,5 @@ spec:
     app: boauth
   ports:
     - name: http
-      port: 8123       # порт сервиса
+      port: 80       # порт сервиса
       targetPort: 8123 # порт контейнера
