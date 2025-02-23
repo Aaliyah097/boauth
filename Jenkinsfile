@@ -92,6 +92,7 @@ spec:
 
               container('kubectl') {
                 sh "kubectl apply -f ci-cd/deployment.yaml -n ${targetNamespace}"
+                sh "kubectl apply -f ci-cd/service.yaml -n ${targetNamespace}"
               }
             }
           }
