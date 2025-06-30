@@ -3,17 +3,13 @@ from aiohttp import web
 import asyncio
 import logging
 from dotenv import load_dotenv
-from aiogram import Bot, Dispatcher
+from aiogram import Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.dispatcher.flags import get_flag
-from src.handlers import router, handle_apple_id
+from src.handlers import router, handle_apple_id, handle_birth_date
 from src.auth import AuthorizationMiddleware
 from src.cache import RedisConnector
 from src import preload
 from bot import bot
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
-from src import schedule
 
 
 load_dotenv('.env')
@@ -22,6 +18,7 @@ load_dotenv('.env')
 async def start_web_server():
     app = web.Application()
     app.router.add_post("/auth/", handle_apple_id)
+    app.router.add_post("/krug/", handle_birth_date)
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 8123)

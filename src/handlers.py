@@ -4,33 +4,20 @@ import json
 import re
 import os
 import random
-from enum import Enum
 from dotenv import load_dotenv
-import aiogram.exceptions
 from aiogram import F, flags
 from aiogram import Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import (
     Message,
-    InlineKeyboardButton,
-    ReplyKeyboardMarkup,
-    WebAppInfo,
-    KeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButtonRequestUser,
-    InputFile,
     FSInputFile,
     BufferedInputFile
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
-from aiogram.enums import ParseMode
 from src.utils import (
-    verify_login,
     make_nonce,
     store_telegram_id,
-    is_valid_url,
     make_friend_k_picture,
-    download_photo,
     make_star_k_picture,
     get_id_number,
     get_k_message,
@@ -40,19 +27,14 @@ from src.utils import (
     get_checks_message
 )
 from src.api_requests import (
-    get_account,
-    activate_account,
-    signup_user,
     calc_friendship_k,
     get_stars_accounts,
-    list_users
 )
 from src import exceptions
 from src import vars
-from src import models
 from src import buttons
-from bot import bot
 from src.auth import login_or_signup
+from src.krugi import my_krug
 
 
 load_dotenv(".env")
@@ -63,13 +45,28 @@ async def handle_apple_id(request):
     try:
         data = await request.json()
         apple_id = str(data['apple_id'])
-
-        await login_or_signup(apple_id, apple_id)
-        nonce = await store_telegram_id(make_nonce(6), apple_id)
-
-        return web.json_response({"nonce": nonce})
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, KeyError):
         return web.json_response({"error": "Нужен JSON с полем 'apple_id'"}, status=400)
+
+    await login_or_signup(apple_id, apple_id)
+    nonce = await store_telegram_id(make_nonce(6), apple_id)
+
+    return web.json_response({"nonce": nonce})
+
+
+async def handle_birth_date(request):
+    try:
+        data = await request.json()
+        birth_date = str(data['birth_date'])
+    except (json.JSONDecodeError, KeyError):
+        return web.json_response({"error": "Нужен JSON с полем 'birth_date'"}, status=400)
+
+    try:
+        number, text = my_krug(birth_date)
+    except ValueError as e:
+        return web.json_response({"error": str(e)}, status=422)
+
+    return web.json_response({'number': number, 'text': text})
 
 
 @router.message(Command("health"))
