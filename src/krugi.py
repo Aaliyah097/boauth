@@ -5,29 +5,32 @@ import dateparser
 import os
 
 
-KRUGI: dict[int, str] = {}
+KRUGI: dict[str, str] = {}
+DEVICES = ('md', 'txt')
+FOLDERS_PATH = 'static/krugi/'
+HELLO_KEY = 'hello'
 
 
-def get_hello_text() -> str:
-    if not 'hello' in KRUGI:
-        with open('static/krugi/hello.md', 'r', encoding='utf-8') as file:
-            KRUGI['hello'] = file.read()
-    return KRUGI['hello']
+def get_hello_text(device: str) -> str:
+    key = HELLO_KEY + device
+    if key not in KRUGI:
+        path = FOLDERS_PATH + device + f'/{HELLO_KEY}.{device}'
+        with open(path, 'r', encoding='utf-8') as file:
+            KRUGI[key] = file.read()
+    return KRUGI[key]
 
 
-def get_krug_text(number: int):
-    number = int(number)
-    assert 1 <= number <= 7
-    if not KRUGI:
-        print("Чтение данных ио кругах из файлов")
-        folder_name = 'static/krugi/'
-        for filename in os.listdir(folder_name):
-            path = folder_name + filename
-            with open(path, 'r', encoding='utf-8') as file:
-                krug_number = filename.split('.')[0]
-                KRUGI[int(krug_number)] = file.read()
+def get_krug_text(number: int, device: str):
+    assert 1 <= int(number) <= 7
+    number = str(number)
 
-    return KRUGI[number]
+    key = number + device
+    if key not in KRUGI:
+        path = FOLDERS_PATH + device + f'/{number}.{device}'
+        with open(path, 'r', encoding='utf-8') as file:
+            KRUGI[key] = file.read()
+
+    return KRUGI[key]
 
 
 def parse_birth_date(input_str: str) -> datetime | None:
@@ -80,7 +83,7 @@ def weekday(year: int, month: int, day: int) -> int:
     return (day + 31 * month // 12 + year + year // 4 - year // 100 + year // 400) % 7
 
 
-def my_krug(birth_date: str) -> tuple[int, str]:
+def my_krug(birth_date: str, device: str) -> tuple[int, str]:
     valid_date = parse_birth_date(birth_date)
     if not valid_date:
         valid_date = dateparser.parse(birth_date)
@@ -93,4 +96,4 @@ def my_krug(birth_date: str) -> tuple[int, str]:
         valid_date.day
     ) + 1
 
-    return krug_number, get_krug_text(krug_number)
+    return krug_number, get_krug_text(krug_number, device)

@@ -34,7 +34,7 @@ from src import exceptions
 from src import vars
 from src import buttons
 from src.auth import login_or_signup
-from src.krugi import my_krug, get_hello_text
+from src.krugi import my_krug, get_hello_text, DEVICES
 
 
 load_dotenv(".env")
@@ -54,8 +54,16 @@ async def handle_apple_id(request):
     return web.json_response({"nonce": nonce})
 
 
-async def handle_krugi_hello(_):
-    return web.json_response({'text': get_hello_text()})
+async def handle_krugi_hello(request):
+    try:
+        data = await request.json()
+        device = str(data['format'])
+        if device not in DEVICES:
+            raise KeyError
+    except (json.JSONDecodeError, KeyError):
+        return web.json_response({"error": f"Нужен JSON с полем 'format' со значением из списка: {DEVICES}"}, status=400)
+
+    return web.json_response({'text': get_hello_text(device)})
 
 
 async def handle_birth_date(request):
@@ -66,7 +74,14 @@ async def handle_birth_date(request):
         return web.json_response({"error": "Нужен JSON с полем 'birth_date'"}, status=400)
 
     try:
-        number, text = my_krug(birth_date)
+        device = str(data['format'])
+        if device not in DEVICES:
+            raise KeyError
+    except KeyError:
+        return web.json_response({'error': f"Нужен ключ format со значением из списка: {DEVICES}"})
+
+    try:
+        number, text = my_krug(birth_date, device)
     except ValueError as e:
         return web.json_response({"error": str(e)}, status=422)
 
