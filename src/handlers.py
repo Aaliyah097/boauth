@@ -34,7 +34,7 @@ from src import exceptions
 from src import vars
 from src import buttons
 from src.auth import login_or_signup
-from src.krugi import my_krug
+from src.krugi import my_krug, get_hello_text
 
 
 load_dotenv(".env")
@@ -52,6 +52,10 @@ async def handle_apple_id(request):
     nonce = await store_telegram_id(make_nonce(6), apple_id)
 
     return web.json_response({"nonce": nonce})
+
+
+async def handle_krugi_hello(_):
+    return web.json_response({'text': get_hello_text()})
 
 
 async def handle_birth_date(request):

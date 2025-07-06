@@ -1,11 +1,17 @@
 import os
 from aiohttp import web
+import aiohttp_cors
 import asyncio
 import logging
 from dotenv import load_dotenv
 from aiogram import Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from src.handlers import router, handle_apple_id, handle_birth_date
+from src.handlers import (
+    router,
+    handle_apple_id,
+    handle_birth_date,
+    handle_krugi_hello
+)
 from src.auth import AuthorizationMiddleware
 from src.cache import RedisConnector
 from src import preload
@@ -19,6 +25,21 @@ async def start_web_server():
     app = web.Application()
     app.router.add_post("/auth/", handle_apple_id)
     app.router.add_post("/krug/", handle_birth_date)
+    app.router.add_get('/krug', handle_krugi_hello)
+
+    cors = aiohttp_cors.setup(
+        app,
+        defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*"
+            )
+        }
+    )
+    for route in list(app.router.routes()):
+        cors.add(route)
+
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 8123)

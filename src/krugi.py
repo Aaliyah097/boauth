@@ -8,6 +8,13 @@ import os
 KRUGI: dict[int, str] = {}
 
 
+def get_hello_text() -> str:
+    if not 'hello' in KRUGI:
+        with open('static/krugi/hello.md', 'r', encoding='utf-8') as file:
+            KRUGI['hello'] = file.read()
+    return KRUGI['hello']
+
+
 def get_krug_text(number: int):
     number = int(number)
     assert 1 <= number <= 7
@@ -16,7 +23,6 @@ def get_krug_text(number: int):
         folder_name = 'static/krugi/'
         for filename in os.listdir(folder_name):
             path = folder_name + filename
-            print(path)
             with open(path, 'r', encoding='utf-8') as file:
                 krug_number = filename.split('.')[0]
                 KRUGI[int(krug_number)] = file.read()
