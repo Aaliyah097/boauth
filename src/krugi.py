@@ -2,11 +2,10 @@ import re
 from dateutil import parser
 from datetime import datetime
 import dateparser
-import os
 
 
 KRUGI: dict[str, str] = {}
-DEVICES = ('md', 'txt')
+DEVICES = ('md', 'txt', 'html')
 FOLDERS_PATH = 'static/krugi/'
 HELLO_KEY = 'hello'
 
