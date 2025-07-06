@@ -56,12 +56,11 @@ async def handle_apple_id(request):
 
 async def handle_krugi_hello(request):
     try:
-        data = await request.json()
-        device = str(data['format'])
+        device = str(request.rel_url.query['format'])
         if device not in DEVICES:
             raise KeyError
     except (json.JSONDecodeError, KeyError):
-        return web.json_response({"error": f"Нужен JSON с полем 'format' со значением из списка: {DEVICES}"}, status=400)
+        return web.json_response({"error": f"Нужен query параметр 'format' со значением из списка: {DEVICES}"}, status=400)
 
     return web.json_response({'text': get_hello_text(device)})
 
