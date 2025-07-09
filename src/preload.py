@@ -1,6 +1,4 @@
 import json
-from io import BytesIO
-import aiofiles
 from src.cache import RedisConnector
 from src import api_requests
 from src import utils
